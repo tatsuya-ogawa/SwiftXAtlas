@@ -4,7 +4,7 @@ This is a Swift package that provides a binding for the [XAtlas](https://github.
 #Installation
 To use this package in your project, you can add the following line to the dependencies section of your Package.swift file:
 ```swift
-.package(url: "https://github.com/tatsuya-ogawa/SwiftXAtlas.git", from: "1.0.0")
+.package(url: "https://github.com/tatsuya-ogawa/SwiftXAtlas.git", from: "0.0.1")
 ```
 # Usage
 First, you need to create an instance of the XAtlas class:
