@@ -1,5 +1,5 @@
 # XAtlas Swift Binding
-This is a Swift package that provides a binding for the XAtlas library, which is a fast and lightweight chart generation library for UV-mapping 3D models. This package enables Swift developers to use XAtlas in their projects without having to write C code.
+This is a Swift package that provides a binding for the [XAtlas](https://github.com/jpcy/xatlas), which is a fast and lightweight chart generation library for UV-mapping 3D models. This package enables Swift developers to use XAtlas in their projects without having to write C code.
 
 #Installation
 To use this package in your project, you can add the following line to the dependencies section of your Package.swift file:
