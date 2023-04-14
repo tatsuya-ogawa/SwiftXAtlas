@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "swiftstanfordbunny",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tatsuya-ogawa/SwiftStanfordBunny.git",
+      "state" : {
+        "revision" : "1ea7cfc9b112fb0fa7d7b19417b7207b5f8b57a3",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 2
+}

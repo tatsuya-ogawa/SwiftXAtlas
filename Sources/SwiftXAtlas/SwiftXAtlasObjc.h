@@ -1,5 +1,4 @@
 #import <Foundation/Foundation.h>
-#include <xatlas.h>
 #ifndef XAtlas_h
 #define XAtlas_h
 
@@ -10,17 +9,20 @@ typedef NS_ENUM(NSInteger, IndexFormat) {
 
 @protocol XAtlasArgument
 -(unsigned int)vertexCount;
--(const void*)vertexPositionData;
+-(nonnull const void*)vertexPositionData;
 -(unsigned int)vertexPositionStride;
--(const void*)vertexNormalData;
+-(nonnull const void*)vertexNormalData;
 -(unsigned int)vertexNormalStride;
 -(unsigned int)indexCount;
--(const void*)indexData;
+-(nonnull const uint32_t*)indexData;
 -(IndexFormat)indexFormat;
 @end
 
 @interface XAtlasResult : NSObject
-
+-(unsigned long)vertexCount;
+@property (nonatomic, strong,nonnull) NSArray<NSNumber *> *mappings;
+@property (nonatomic, strong,nonnull) NSArray<NSNumber *> *uvs;
+@property (nonatomic, strong,nonnull) NSArray<NSNumber *> *indices;
 @end
 
 @interface XAtlasChartOptions : NSObject
@@ -32,8 +34,9 @@ typedef NS_ENUM(NSInteger, IndexFormat) {
 @end
 
 @interface XAtlas : NSObject
--(XAtlasResult*) generate: (NSArray<id<XAtlasArgument>>*)arguments;
--(XAtlasResult*) generate: (NSArray<id<XAtlasArgument>>*)arguments chartOptions:(XAtlasChartOptions*) chartOptions packOptions:(XAtlasPackOptions*)packOptions;
+-(void)generate: (nonnull NSArray<id<XAtlasArgument>>*)arguments;
+-(void)generate: (nonnull NSArray<id<XAtlasArgument>>*)arguments chartOptions:(nullable XAtlasChartOptions*) chartOptions packOptions:(nullable XAtlasPackOptions*)packOptions;
+-(nullable XAtlasResult*)meshAt:(NSInteger)index;
 @end
 
 #endif
