@@ -19,10 +19,18 @@ let package = Package(
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
+            name: "XAtlasCpp",
+            dependencies: [],
+            path: "xatlas/source/xatlas",
+            publicHeadersPath: ""
+        ),
+        .target(
             name: "SwiftXAtlas",
-            dependencies: []),
+            dependencies: ["XAtlasCpp"],
+            publicHeadersPath: ""),
         .testTarget(
             name: "SwiftXAtlasTests",
-            dependencies: ["SwiftXAtlas"]),
-    ]
+            dependencies: ["SwiftXAtlas"]),            
+    ],
+    cxxLanguageStandard: .cxx14
 )
