@@ -19,10 +19,21 @@ typedef NS_ENUM(NSInteger, IndexFormat) {
 -(IndexFormat)indexFormat;
 @end
 
+@interface XAtlasResult : NSObject
+
+@end
+
+@interface XAtlasChartOptions : NSObject
+
+@end
+
+@interface XAtlasPackOptions : NSObject
+
+@end
+
 @interface XAtlas : NSObject
-
--(void) generate: (id<XAtlasArgument>) argument;
-
+-(XAtlasResult*) generate: (NSArray<id<XAtlasArgument>>*)arguments;
+-(XAtlasResult*) generate: (NSArray<id<XAtlasArgument>>*)arguments chartOptions:(XAtlasChartOptions*) chartOptions packOptions:(XAtlasPackOptions*)packOptions;
 @end
 
 #endif

@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftXAtlas
 
-class Argument:XAtlasArgument{
+class TestArgument:XAtlasArgument{
     func indexData() -> UnsafeRawPointer! {
     }
     
@@ -34,7 +34,8 @@ final class SwiftXAtlasTests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        let xatlas = XAtlas()        
+        let xatlas = XAtlas()
+        xatlas.generate([TestArgument()])
 //        XCTAssertEqual(SwiftXAtlas().text, "Hello, World!")
     }
 }
