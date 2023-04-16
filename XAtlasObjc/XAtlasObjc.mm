@@ -1,7 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <xatlas.h>
-#import "SwiftXAtlasObjc.h"
+
+#import "XAtlasObjc.h"
 @implementation XAtlasChartOptions : NSObject
 float maxChartArea = 0.0f;
 float maxBoundaryLength = 0.0f;
@@ -25,10 +26,50 @@ float texelsPerUnit = 0.0f;
 uint32_t resolution = 0;
 @end
 
-@implementation XAtlasResult : NSObject
--(unsigned long)vertexCount{
-    return [_mappings count];
+@implementation XAtlasMesh : NSObject
+std::vector<unsigned int> nativeMappings;
+std::vector<simd_float2> nativeUvs;
+std::vector<simd_uint3> nativeIndices;
+-(void)clearCache{
+    nativeMappings.clear();
+    nativeUvs.clear();
+    nativeIndices.clear();
 }
+-(void)assign:(xatlas::Mesh*)mesh xatlas:(xatlas::Atlas *)atlas{
+    std::vector<unsigned int> mappings(mesh->vertexCount);
+    std::vector<simd_float2> uvs(mesh->vertexCount);
+    std::vector<simd_uint3> indices(mesh->indexCount/3);
+    for (size_t v = 0; v < static_cast<size_t>(mesh->vertexCount); ++v)
+    {
+        auto const& vertex = mesh->vertexArray[v];
+        mappings[v] = vertex.xref;
+        uvs[v] = {vertex.uv[0] / atlas->width,vertex.uv[1] / atlas->height};
+    }
+    for (size_t f = 0; f < static_cast<size_t>(mesh->indexCount) / 3; ++f)
+    {
+        indices[f] = {mesh->indexArray[f*3 + 0],mesh->indexArray[f*3 + 1],mesh->indexArray[f*3 + 2]};
+    }
+    nativeMappings = mappings;
+    nativeUvs = uvs;
+    nativeIndices = indices;
+    _indicesCount = indices.size();
+    _vertexCount = mappings.size();
+}
+-(unsigned int*)mappingsPointer{
+    return &nativeMappings[0];
+}
+-(simd_float2*)uvsPointer{
+    return &nativeUvs[0];
+}
+-(simd_uint3*)indicesPointer{
+    return &nativeIndices[0];
+}
+@end
+
+@protocol XAtlasMapping
+-(unsigned int)mapping;
+-(nonnull const void*)vertexPositionData;
+-(unsigned int)vertexPositionStride;
 @end
 
 @implementation XAtlas
@@ -39,29 +80,6 @@ xatlas::Atlas *atlas;
 }
 - (void)dealloc{
     xatlas::Destroy(atlas);
-}
--(XAtlasResult*) result:(xatlas::Mesh*)mesh{
-    NSMutableArray<NSNumber *>* mappings = [NSMutableArray arrayWithCapacity:mesh->vertexCount];
-    NSMutableArray<NSNumber *>* uvs = [NSMutableArray arrayWithCapacity:mesh->vertexCount*2];
-    for (size_t v = 0; v < static_cast<size_t>(mesh->vertexCount); ++v)
-    {
-        auto const& vertex = mesh->vertexArray[v];
-        mappings[v] = @(vertex.xref);
-        uvs[v*2] = @(vertex.uv[0] / atlas->width);
-        uvs[v*2+1] = @(vertex.uv[1] / atlas->height);
-    }
-    NSMutableArray<NSNumber *>* indices = [NSMutableArray arrayWithCapacity:mesh->vertexCount];
-    for (size_t f = 0; f < static_cast<size_t>(mesh->indexCount) / 3; ++f)
-    {
-        indices[f*3] = @(mesh->indexArray[f*3 + 0]);
-        indices[f*3+1] = @(mesh->indexArray[f*3 + 1]);
-        indices[f*3+2] = @(mesh->indexArray[f*3 + 2]);
-    }
-    XAtlasResult* result = [[XAtlasResult alloc] init];
-    result.mappings = mappings;
-    result.uvs = uvs;
-    result.indices = indices;
-    return result;
 }
 -(xatlas::IndexFormat)castIndexFormat:(IndexFormat)format{
     switch(format){
@@ -78,8 +96,10 @@ xatlas::Atlas *atlas;
         meshDecl.vertexCount = [argument vertexCount];
         meshDecl.vertexPositionData = [argument vertexPositionData];
         meshDecl.vertexPositionStride = [argument vertexPositionStride];
-        meshDecl.vertexNormalData = [argument vertexNormalData];
-        meshDecl.vertexNormalStride = [argument vertexNormalStride];
+        if([(id)argument respondsToSelector:@selector(vertexNormalData:)]){
+            meshDecl.vertexNormalData = [argument vertexNormalData];
+            meshDecl.vertexNormalStride = [argument vertexNormalStride];
+        }
         meshDecl.indexCount = [argument indexCount];
         meshDecl.indexData = [argument indexData];
         meshDecl.indexFormat = [self castIndexFormat:argument.indexFormat];
@@ -90,17 +110,22 @@ xatlas::Atlas *atlas;
             throw std::runtime_error("Error adding mesh to xatlas: " + std::string(xatlas::StringForEnum(error)));
         }
     }
+    
     xatlas::Generate(atlas);
 }
 -(void) generate: (nonnull NSArray<id<XAtlasArgument>>*)arguments{
     [self generate:arguments chartOptions:nil packOptions:nil];
 }
--(nullable XAtlasResult*)meshAt:(NSInteger)index{
+-(nullable XAtlasMesh*)meshAt:(NSInteger)index{
+    XAtlasMesh* mesh = [[XAtlasMesh alloc] init];
+    return [self meshAt:index fill:mesh];
+}
+-(nullable XAtlasMesh*)meshAt:(NSInteger)index fill:(nullable XAtlasMesh*)mesh{
     if (index >= atlas->meshCount)
     {
         throw std::out_of_range("Mesh index " + std::to_string(index) + " out of bounds for atlas with " + std::to_string(atlas->meshCount) + " meshes.");
     }
-    xatlas::Mesh *outputMesh = &atlas->meshes[index];
-    return [self result:outputMesh];
+    [mesh assign:&atlas->meshes[index] xatlas:atlas];
+    return mesh;
 }
 @end

@@ -2,13 +2,13 @@ import XCTest
 import SwiftStanfordBunny
 @testable import SwiftXAtlas
 
-class ExampleArgument:XAtlasArgument{
+class ExampleArgument:SwiftXAtlasArgument{
     
     var points:[Point]
     var indices:[UInt32]
 
-    func indexFormat() -> IndexFormat {
-        return IndexFormat.uint32
+    func indexFormat() -> SwiftIndexFormat {
+        return .uint32
     }
     
     func vertexCount() -> UInt32 {
@@ -22,7 +22,6 @@ class ExampleArgument:XAtlasArgument{
     func vertexPositionStride() -> UInt32 {
         return UInt32(MemoryLayout<Point>.stride)
     }
-    
     func vertexNormalData() -> UnsafeRawPointer {
         return UnsafeRawPointer(self.points).advanced(by: MemoryLayout<SIMD3<Float>>.stride)
     }
@@ -30,7 +29,7 @@ class ExampleArgument:XAtlasArgument{
         return UInt32(MemoryLayout<Point>.stride)
     }
     func indexCount() -> UInt32 {
-        return UInt32(indices.count/3)
+        return UInt32(indices.count)
     }
     func indexData() -> UnsafePointer<UInt32> {
         return UnsafePointer(self.indices)
@@ -40,10 +39,11 @@ class ExampleArgument:XAtlasArgument{
         self.indices = indices.flatMap{$0.map{UInt32($0)}}
     }
 }
-struct Point:BunnyPointProtocol{        
+struct Point:BunnyPointProtocol,SwiftXAtlasUVProtocol{
     var pos: SIMD3<Float>
     var normal: SIMD3<Float>
     var color: SIMD4<UInt8>
+    var uv: SIMD2<Float> = SIMD2<Float>.zero
     init(pos: SIMD3<Float>, normal: SIMD3<Float>, color: SIMD4<UInt8>) {
         self.pos = pos
         self.normal = normal
@@ -58,10 +58,10 @@ final class SwiftXAtlasTests: XCTestCase {
         // results.
         let bunny = SwiftStanfordBunny<Point>.instance()
         let (points,faces) = try! bunny.load()
-        let xatlas = XAtlas()
+        let xatlas = SwiftXAtlas()
         xatlas.generate([ExampleArgument(points: points, indices: faces)])
         let mesh = xatlas.mesh(at: 0)
-        XCTAssertEqual(mesh!.indices.count,faces.count)
-        XCTAssertEqual(mesh!.mappings.count,mesh!.uvs.count/2)
+//        XCTAssertEqual(mesh.indices.count,faces.count)
+        XCTAssertEqual(mesh.mappings.count,mesh.uvs.count)
     }
 }

@@ -26,9 +26,18 @@ let package = Package(
             publicHeadersPath: ""
         ),
         .target(
-            name: "SwiftXAtlas",
+            name: "XAtlasObjc",
             dependencies: ["XAtlasCpp"],
+            path: "XAtlasObjc",
             publicHeadersPath: ""),
+        .target(
+            name: "SwiftXAtlas",
+            dependencies: ["XAtlasObjc"],
+            path: "SwiftXAtlas",
+            resources: [
+                .process("Resources")
+            ]
+        ),
         .testTarget(
             name: "SwiftXAtlasTests",
             dependencies: ["SwiftXAtlas",
