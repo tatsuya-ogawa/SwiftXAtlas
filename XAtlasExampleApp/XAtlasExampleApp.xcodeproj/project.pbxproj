@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		097CBF6929EBD9B700A8DF80 /* SwiftXAtlas in Frameworks */ = {isa = PBXBuildFile; productRef = 097CBF6829EBD9B700A8DF80 /* SwiftXAtlas */; };
-		09B175C629EBD37C00E7D8C9 /* SwiftStanfordBunny in Frameworks */ = {isa = PBXBuildFile; productRef = 09B175C529EBD37C00E7D8C9 /* SwiftStanfordBunny */; };
+		09A94FDC29EC7BBA0018B28D /* SwiftStanfordBunny in Frameworks */ = {isa = PBXBuildFile; productRef = 09A94FDB29EC7BBA0018B28D /* SwiftStanfordBunny */; };
 		09C0CFCA29EA5B8400CA2762 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C0CFC929EA5B8400CA2762 /* AppDelegate.swift */; };
 		09C0CFCC29EA5B8400CA2762 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C0CFCB29EA5B8400CA2762 /* SceneDelegate.swift */; };
 		09C0CFCE29EA5B8400CA2762 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C0CFCD29EA5B8400CA2762 /* ViewController.swift */; };
@@ -19,7 +19,7 @@
 
 /* Begin PBXFileReference section */
 		09B175C729EBD97E00E7D8C9 /* SwiftXAtlas */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = SwiftXAtlas; path = ..; sourceTree = "<group>"; };
-		09C0CFC629EA5B8400CA2762 /* ExampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ExampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		09C0CFC629EA5B8400CA2762 /* XAtlasExampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XAtlasExampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09C0CFC929EA5B8400CA2762 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		09C0CFCB29EA5B8400CA2762 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		09C0CFCD29EA5B8400CA2762 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -34,7 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09B175C629EBD37C00E7D8C9 /* SwiftStanfordBunny in Frameworks */,
+				09A94FDC29EC7BBA0018B28D /* SwiftStanfordBunny in Frameworks */,
 				097CBF6929EBD9B700A8DF80 /* SwiftXAtlas in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -61,7 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				09B175BE29EBC17800E7D8C9 /* Packages */,
-				09C0CFC829EA5B8400CA2762 /* ExampleApp */,
+				09C0CFC829EA5B8400CA2762 /* XAtlasExampleApp */,
 				09C0CFC729EA5B8400CA2762 /* Products */,
 				09B175C029EBCC9D00E7D8C9 /* Frameworks */,
 			);
@@ -70,12 +70,12 @@
 		09C0CFC729EA5B8400CA2762 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				09C0CFC629EA5B8400CA2762 /* ExampleApp.app */,
+				09C0CFC629EA5B8400CA2762 /* XAtlasExampleApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		09C0CFC829EA5B8400CA2762 /* ExampleApp */ = {
+		09C0CFC829EA5B8400CA2762 /* XAtlasExampleApp */ = {
 			isa = PBXGroup;
 			children = (
 				09C0CFC929EA5B8400CA2762 /* AppDelegate.swift */,
@@ -86,15 +86,15 @@
 				09C0CFD429EA5B8500CA2762 /* LaunchScreen.storyboard */,
 				09C0CFD729EA5B8500CA2762 /* Info.plist */,
 			);
-			path = ExampleApp;
+			path = XAtlasExampleApp;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		09C0CFC529EA5B8400CA2762 /* ExampleApp */ = {
+		09C0CFC529EA5B8400CA2762 /* XAtlasExampleApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 09C0CFDA29EA5B8500CA2762 /* Build configuration list for PBXNativeTarget "ExampleApp" */;
+			buildConfigurationList = 09C0CFDA29EA5B8500CA2762 /* Build configuration list for PBXNativeTarget "XAtlasExampleApp" */;
 			buildPhases = (
 				09C0CFC229EA5B8400CA2762 /* Sources */,
 				09C0CFC329EA5B8400CA2762 /* Frameworks */,
@@ -104,13 +104,13 @@
 			);
 			dependencies = (
 			);
-			name = ExampleApp;
+			name = XAtlasExampleApp;
 			packageProductDependencies = (
-				09B175C529EBD37C00E7D8C9 /* SwiftStanfordBunny */,
 				097CBF6829EBD9B700A8DF80 /* SwiftXAtlas */,
+				09A94FDB29EC7BBA0018B28D /* SwiftStanfordBunny */,
 			);
 			productName = ExampleApp;
-			productReference = 09C0CFC629EA5B8400CA2762 /* ExampleApp.app */;
+			productReference = 09C0CFC629EA5B8400CA2762 /* XAtlasExampleApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -128,7 +128,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 09C0CFC129EA5B8400CA2762 /* Build configuration list for PBXProject "ExampleApp" */;
+			buildConfigurationList = 09C0CFC129EA5B8400CA2762 /* Build configuration list for PBXProject "XAtlasExampleApp" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -138,13 +138,13 @@
 			);
 			mainGroup = 09C0CFBD29EA5B8400CA2762;
 			packageReferences = (
-				09B175C429EBD37C00E7D8C9 /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */,
+				09A94FDA29EC7BBA0018B28D /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */,
 			);
 			productRefGroup = 09C0CFC729EA5B8400CA2762 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				09C0CFC529EA5B8400CA2762 /* ExampleApp */,
+				09C0CFC529EA5B8400CA2762 /* XAtlasExampleApp */,
 			);
 		};
 /* End PBXProject section */
@@ -318,7 +318,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 5M67Q8ZZ53;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ExampleApp/Info.plist;
+				INFOPLIST_FILE = XAtlasExampleApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -346,7 +346,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 5M67Q8ZZ53;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = ExampleApp/Info.plist;
+				INFOPLIST_FILE = XAtlasExampleApp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -368,7 +368,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		09C0CFC129EA5B8400CA2762 /* Build configuration list for PBXProject "ExampleApp" */ = {
+		09C0CFC129EA5B8400CA2762 /* Build configuration list for PBXProject "XAtlasExampleApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				09C0CFD829EA5B8500CA2762 /* Debug */,
@@ -377,7 +377,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		09C0CFDA29EA5B8500CA2762 /* Build configuration list for PBXNativeTarget "ExampleApp" */ = {
+		09C0CFDA29EA5B8500CA2762 /* Build configuration list for PBXNativeTarget "XAtlasExampleApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				09C0CFDB29EA5B8500CA2762 /* Debug */,
@@ -389,12 +389,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		09B175C429EBD37C00E7D8C9 /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */ = {
+		09A94FDA29EC7BBA0018B28D /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/tatsuya-ogawa/SwiftStanfordBunny.git";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -404,9 +404,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = SwiftXAtlas;
 		};
-		09B175C529EBD37C00E7D8C9 /* SwiftStanfordBunny */ = {
+		09A94FDB29EC7BBA0018B28D /* SwiftStanfordBunny */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 09B175C429EBD37C00E7D8C9 /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */;
+			package = 09A94FDA29EC7BBA0018B28D /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */;
 			productName = SwiftStanfordBunny;
 		};
 /* End XCSwiftPackageProductDependency section */
