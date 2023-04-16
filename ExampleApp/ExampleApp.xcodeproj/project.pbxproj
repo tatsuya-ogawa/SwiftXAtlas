@@ -7,19 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		097CBF6929EBD9B700A8DF80 /* SwiftXAtlas in Frameworks */ = {isa = PBXBuildFile; productRef = 097CBF6829EBD9B700A8DF80 /* SwiftXAtlas */; };
+		09B175C629EBD37C00E7D8C9 /* SwiftStanfordBunny in Frameworks */ = {isa = PBXBuildFile; productRef = 09B175C529EBD37C00E7D8C9 /* SwiftStanfordBunny */; };
 		09C0CFCA29EA5B8400CA2762 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C0CFC929EA5B8400CA2762 /* AppDelegate.swift */; };
 		09C0CFCC29EA5B8400CA2762 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C0CFCB29EA5B8400CA2762 /* SceneDelegate.swift */; };
 		09C0CFCE29EA5B8400CA2762 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C0CFCD29EA5B8400CA2762 /* ViewController.swift */; };
 		09C0CFD129EA5B8400CA2762 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 09C0CFCF29EA5B8400CA2762 /* Main.storyboard */; };
 		09C0CFD329EA5B8500CA2762 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 09C0CFD229EA5B8500CA2762 /* Assets.xcassets */; };
 		09C0CFD629EA5B8500CA2762 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 09C0CFD429EA5B8500CA2762 /* LaunchScreen.storyboard */; };
-		09C0CFE129EA5C1900CA2762 /* shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 09C0CFDF29EA5C1900CA2762 /* shaders.metal */; };
-		09C0CFE229EA5C1900CA2762 /* TextureFromVertexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C0CFE029EA5C1900CA2762 /* TextureFromVertexColor.swift */; };
-		09C0CFE929EA7C6400CA2762 /* SwiftXAtlas in Frameworks */ = {isa = PBXBuildFile; productRef = 09C0CFE829EA7C6400CA2762 /* SwiftXAtlas */; };
-		09C0CFEC29EA7C7600CA2762 /* SwiftStanfordBunny in Frameworks */ = {isa = PBXBuildFile; productRef = 09C0CFEB29EA7C7600CA2762 /* SwiftStanfordBunny */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		09B175C729EBD97E00E7D8C9 /* SwiftXAtlas */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = SwiftXAtlas; path = ..; sourceTree = "<group>"; };
 		09C0CFC629EA5B8400CA2762 /* ExampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ExampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09C0CFC929EA5B8400CA2762 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		09C0CFCB29EA5B8400CA2762 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -28,8 +27,6 @@
 		09C0CFD229EA5B8500CA2762 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		09C0CFD529EA5B8500CA2762 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		09C0CFD729EA5B8500CA2762 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		09C0CFDF29EA5C1900CA2762 /* shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shaders.metal; sourceTree = "<group>"; };
-		09C0CFE029EA5C1900CA2762 /* TextureFromVertexColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextureFromVertexColor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,19 +34,36 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09C0CFEC29EA7C7600CA2762 /* SwiftStanfordBunny in Frameworks */,
-				09C0CFE929EA7C6400CA2762 /* SwiftXAtlas in Frameworks */,
+				09B175C629EBD37C00E7D8C9 /* SwiftStanfordBunny in Frameworks */,
+				097CBF6929EBD9B700A8DF80 /* SwiftXAtlas in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		09B175BE29EBC17800E7D8C9 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				09B175C729EBD97E00E7D8C9 /* SwiftXAtlas */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		09B175C029EBCC9D00E7D8C9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		09C0CFBD29EA5B8400CA2762 = {
 			isa = PBXGroup;
 			children = (
+				09B175BE29EBC17800E7D8C9 /* Packages */,
 				09C0CFC829EA5B8400CA2762 /* ExampleApp */,
 				09C0CFC729EA5B8400CA2762 /* Products */,
+				09B175C029EBCC9D00E7D8C9 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -64,8 +78,6 @@
 		09C0CFC829EA5B8400CA2762 /* ExampleApp */ = {
 			isa = PBXGroup;
 			children = (
-				09C0CFDF29EA5C1900CA2762 /* shaders.metal */,
-				09C0CFE029EA5C1900CA2762 /* TextureFromVertexColor.swift */,
 				09C0CFC929EA5B8400CA2762 /* AppDelegate.swift */,
 				09C0CFCB29EA5B8400CA2762 /* SceneDelegate.swift */,
 				09C0CFCD29EA5B8400CA2762 /* ViewController.swift */,
@@ -94,8 +106,8 @@
 			);
 			name = ExampleApp;
 			packageProductDependencies = (
-				09C0CFE829EA7C6400CA2762 /* SwiftXAtlas */,
-				09C0CFEB29EA7C7600CA2762 /* SwiftStanfordBunny */,
+				09B175C529EBD37C00E7D8C9 /* SwiftStanfordBunny */,
+				097CBF6829EBD9B700A8DF80 /* SwiftXAtlas */,
 			);
 			productName = ExampleApp;
 			productReference = 09C0CFC629EA5B8400CA2762 /* ExampleApp.app */;
@@ -126,8 +138,7 @@
 			);
 			mainGroup = 09C0CFBD29EA5B8400CA2762;
 			packageReferences = (
-				09C0CFE729EA7C6400CA2762 /* XCRemoteSwiftPackageReference "SwiftXAtlas" */,
-				09C0CFEA29EA7C7600CA2762 /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */,
+				09B175C429EBD37C00E7D8C9 /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */,
 			);
 			productRefGroup = 09C0CFC729EA5B8400CA2762 /* Products */;
 			projectDirPath = "";
@@ -156,9 +167,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09C0CFE129EA5C1900CA2762 /* shaders.metal in Sources */,
 				09C0CFCE29EA5B8400CA2762 /* ViewController.swift in Sources */,
-				09C0CFE229EA5C1900CA2762 /* TextureFromVertexColor.swift in Sources */,
 				09C0CFCA29EA5B8400CA2762 /* AppDelegate.swift in Sources */,
 				09C0CFCC29EA5B8400CA2762 /* SceneDelegate.swift in Sources */,
 			);
@@ -380,15 +389,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		09C0CFE729EA7C6400CA2762 /* XCRemoteSwiftPackageReference "SwiftXAtlas" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/tatsuya-ogawa/SwiftXAtlas.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.1;
-			};
-		};
-		09C0CFEA29EA7C7600CA2762 /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */ = {
+		09B175C429EBD37C00E7D8C9 /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/tatsuya-ogawa/SwiftStanfordBunny.git";
 			requirement = {
@@ -399,14 +400,13 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		09C0CFE829EA7C6400CA2762 /* SwiftXAtlas */ = {
+		097CBF6829EBD9B700A8DF80 /* SwiftXAtlas */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 09C0CFE729EA7C6400CA2762 /* XCRemoteSwiftPackageReference "SwiftXAtlas" */;
 			productName = SwiftXAtlas;
 		};
-		09C0CFEB29EA7C7600CA2762 /* SwiftStanfordBunny */ = {
+		09B175C529EBD37C00E7D8C9 /* SwiftStanfordBunny */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 09C0CFEA29EA7C7600CA2762 /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */;
+			package = 09B175C429EBD37C00E7D8C9 /* XCRemoteSwiftPackageReference "SwiftStanfordBunny" */;
 			productName = SwiftStanfordBunny;
 		};
 /* End XCSwiftPackageProductDependency section */

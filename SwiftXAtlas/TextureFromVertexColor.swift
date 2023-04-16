@@ -8,24 +8,35 @@
 import Foundation
 import Metal
 import CoreGraphics
-import UIKit
-class TextureFromVertexColor{
+public class TextureFromVertexColor{
     let textureWidth = 256
     let textureHeight = 256
-    struct Vertex {
+    public struct Vertex {
         var position: SIMD4<Float32>
         var uv: SIMD2<Float32>
         var color: SIMD4<Float32>
+        public init(position: SIMD4<Float32>, uv: SIMD2<Float32>, color: SIMD4<Float32>) {
+            self.position = position
+            self.uv = uv
+            self.color = color
+        }
     }
     private var device: MTLDevice?
     private var commandQueue: MTLCommandQueue?
     private var pipelineState: MTLRenderPipelineState?
-    func setup(){
+    public init() {
+    }
+    public func setup()throws{
+        guard let shadersUrl = Bundle.module.url(forResource: "shaders", withExtension: "metallib") else {
+            throw NSError(domain: "resource not found", code: 0)
+        }
+        let source =  try String(contentsOf: shadersUrl)
+
         guard let device = MTLCreateSystemDefaultDevice() else {
             fatalError("Metal is not supported on this device")
         }
         self.device = device
-        let library = device.makeDefaultLibrary()!
+        let library = try device.makeLibrary(source: source, options: nil)
         let vertexFunction = library.makeFunction(name: "vertexShader")
         let fragmentFunction = library.makeFunction(name: "fragmentShader")
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
@@ -49,7 +60,7 @@ class TextureFromVertexColor{
         pipelineState = try! device.makeRenderPipelineState(descriptor: pipelineDescriptor)
         commandQueue = device.makeCommandQueue()
     }
-    func draw(vertices:[Vertex],indices:[UInt32])->UIImage?{
+    public func draw(vertices:[Vertex],indices:[UInt32])->CGImage?{
         guard let device = self.device else {
             return nil
         }
@@ -92,7 +103,7 @@ class TextureFromVertexColor{
         
         return image(from: texture)
     }
-    func image(from mtlTexture: MTLTexture) -> UIImage {
+    func image(from mtlTexture: MTLTexture) -> CGImage? {
         let w = mtlTexture.width
         let h = mtlTexture.height
         let bytesPerPixel: Int = 4
@@ -111,8 +122,6 @@ class TextureFromVertexColor{
                                 bytesPerRow: bytesPerRow,
                                 space: colorSpace,
                                 bitmapInfo: bitmapInfo.rawValue)
-        let cgImage = context?.makeImage()
-        let image = UIImage(cgImage: cgImage!)
-        return image
+        return context?.makeImage()
     }
 }

@@ -8,8 +8,9 @@
 import UIKit
 
 import SwiftStanfordBunny
-import SwiftXAtlas
 import simd
+import SwiftXAtlas
+import XAtlasObjc
 
 class ExampleArgument:XAtlasArgument{
     
@@ -78,23 +79,23 @@ class ViewController: UIViewController {
         let bunny = SwiftStanfordBunny<Point>.instance()
         let (points,faces) = try! bunny.load()
         let texture = TextureFromVertexColor()
-        texture.setup()
-
+        try! texture.setup()
+        
         var vertices = points.map{p in
             var color = SIMD4<Float32>(1.0,1.0,1.0,1.0)
             let uv = (p.uv - SIMD2<Float32>(0.5,0.5))*2
             return TextureFromVertexColor.Vertex(position: SIMD4<Float32>( p.pos.x,p.pos.y,p.pos.z,1.0), uv: uv, color: color)
         }
         var indices = faces.flatMap{$0.map{UInt32($0)}}
-//        vertices = [
-//            TextureFromVertexColor.Vertex(position: SIMD4<Float32>.zero, uv: SIMD2<Float>(100,0), color: SIMD4<Float>(1,0,0,1)),
-//            TextureFromVertexColor.Vertex(position: SIMD4<Float32>.zero, uv: SIMD2<Float>(-100,0), color: SIMD4<Float>(0,1,0,1)),
-//            TextureFromVertexColor.Vertex(position: SIMD4<Float32>.zero, uv: SIMD2<Float>(0,100), color: SIMD4<Float>(0,0,1,1)),
-//        ]
-//        indices = [0,1,2]
+        //        vertices = [
+        //            TextureFromVertexColor.Vertex(position: SIMD4<Float32>.zero, uv: SIMD2<Float>(100,0), color: SIMD4<Float>(1,0,0,1)),
+        //            TextureFromVertexColor.Vertex(position: SIMD4<Float32>.zero, uv: SIMD2<Float>(-100,0), color: SIMD4<Float>(0,1,0,1)),
+        //            TextureFromVertexColor.Vertex(position: SIMD4<Float32>.zero, uv: SIMD2<Float>(0,100), color: SIMD4<Float>(0,0,1,1)),
+        //        ]
+        //        indices = [0,1,2]
         let image = texture.draw(vertices: vertices, indices: indices)
-
-//        let image = texture.draw(vertices: vertices, indices: faces.flatMap{$0.map{UInt32($0)}})
+        
+        //        let image = texture.draw(vertices: vertices, indices: faces.flatMap{$0.map{UInt32($0)}})
         //        let xatlas = XAtlas()
         //        xatlas.generate([ExampleArgument(points: points, indices: faces)])
         //        let mesh = xatlas.mesh(at: 0)
@@ -110,7 +111,7 @@ class ViewController: UIViewController {
         //            vertices[Int(UInt(mapping.int32Value))].uv = uv
         //        }
         //        let image = texture.draw(vertices: vertices, indices: mesh!.indices.map{UInt32(truncating: $0)})
-        let imageView = UIImageView(image: image)
+        let imageView = UIImageView(image:UIImage(cgImage: image!))
         imageView.frame = self.view.frame
         self.view.addSubview(imageView)
     }
