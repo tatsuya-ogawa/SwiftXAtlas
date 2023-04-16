@@ -38,7 +38,7 @@ std::vector<simd_uint3> nativeIndices;
 -(void)assign:(xatlas::Mesh*)mesh xatlas:(xatlas::Atlas *)atlas{
     std::vector<unsigned int> mappings(mesh->vertexCount);
     std::vector<simd_float2> uvs(mesh->vertexCount);
-    std::vector<simd_uint3> indices(mesh->vertexCount/3);
+    std::vector<simd_uint3> indices(mesh->indexCount/3);
     for (size_t v = 0; v < static_cast<size_t>(mesh->vertexCount); ++v)
     {
         auto const& vertex = mesh->vertexArray[v];
@@ -96,8 +96,10 @@ xatlas::Atlas *atlas;
         meshDecl.vertexCount = [argument vertexCount];
         meshDecl.vertexPositionData = [argument vertexPositionData];
         meshDecl.vertexPositionStride = [argument vertexPositionStride];
-        meshDecl.vertexNormalData = [argument vertexNormalData];
-        meshDecl.vertexNormalStride = [argument vertexNormalStride];
+        if([(id)argument respondsToSelector:@selector(vertexNormalData:)]){
+            meshDecl.vertexNormalData = [argument vertexNormalData];
+            meshDecl.vertexNormalStride = [argument vertexNormalStride];
+        }
         meshDecl.indexCount = [argument indexCount];
         meshDecl.indexData = [argument indexData];
         meshDecl.indexFormat = [self castIndexFormat:argument.indexFormat];
@@ -108,6 +110,7 @@ xatlas::Atlas *atlas;
             throw std::runtime_error("Error adding mesh to xatlas: " + std::string(xatlas::StringForEnum(error)));
         }
     }
+    
     xatlas::Generate(atlas);
 }
 -(void) generate: (nonnull NSArray<id<XAtlasArgument>>*)arguments{

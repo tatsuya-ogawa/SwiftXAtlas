@@ -12,11 +12,12 @@ typedef NS_ENUM(NSInteger, IndexFormat) {
 -(unsigned int)vertexCount;
 -(nonnull const void*)vertexPositionData;
 -(unsigned int)vertexPositionStride;
--(nonnull const void*)vertexNormalData;
--(unsigned int)vertexNormalStride;
 -(unsigned int)indexCount;
 -(nonnull const uint32_t*)indexData;
 -(IndexFormat)indexFormat;
+@optional
+-(nullable const void*)vertexNormalData;
+-(unsigned int)vertexNormalStride;
 @end
 
 @interface XAtlasMesh : NSObject
