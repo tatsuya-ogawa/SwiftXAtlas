@@ -1,0 +1,23 @@
+{
+  "pins" : [
+    {
+      "identity" : "swiftstanfordbunny",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tatsuya-ogawa/SwiftStanfordBunny.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "103ebb963bc7b812c29b53dd9fd6a04438dce217"
+      }
+    },
+    {
+      "identity" : "swiftxatlas",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tatsuya-ogawa/SwiftXAtlas.git",
+      "state" : {
+        "revision" : "7c05ccd8e738f6110c454e2605ebbf9e9b6e8c3a",
+        "version" : "0.0.1"
+      }
+    }
+  ],
+  "version" : 2
+}
