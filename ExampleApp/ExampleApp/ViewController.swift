@@ -48,15 +48,15 @@ class ExampleArgument:SwiftXAtlasArgument{
         self.indices = indices.flatMap{$0.map{UInt32($0)}}
     }
 }
-struct Point:BunnyPointProtocol,SwiftXAtlasUVProtocol{
+struct Point:BunnyPointProtocol,SwiftXAtlasUVProtocol{    
     var pos: SIMD3<Float32>
     var normal: SIMD3<Float32>
     var color: SIMD4<Float32>
     var uv: SIMD2<Float32>
-    init(pos: SIMD3<Float32>, normal: SIMD3<Float>, color: SIMD4<Float>, uv: SIMD2<Float>) {
+    init(pos: SIMD3<Float32>, normal: SIMD3<Float>, uv: SIMD2<Float>) {
         self.pos = pos
         self.normal = normal
-        self.color = color
+        self.color = SIMD4<Float>.zero
         self.uv = uv
     }
 }
