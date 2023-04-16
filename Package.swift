@@ -40,7 +40,7 @@ let package = Package(
         ),
         .testTarget(
             name: "SwiftXAtlasTests",
-            dependencies: ["XAtlasObjc",
+            dependencies: ["SwiftXAtlas",
                           "SwiftStanfordBunny"]),
     ],
     cxxLanguageStandard: .cxx14
