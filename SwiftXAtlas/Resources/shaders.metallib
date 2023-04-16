@@ -18,7 +18,7 @@ vertex VertexOut vertexShader(constant VertexIn *vertices[[buffer(0)]],
     VertexIn in = vertices[vertex_id];
     out.position = float4(in.uv.x,in.uv.y,0,1);
     out.uv = in.uv;
-    out.color = float4(1.0,0,0,1);// in.color;
+    out.color = in.color;
     return out;
 }
 
