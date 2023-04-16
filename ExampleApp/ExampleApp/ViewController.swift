@@ -117,11 +117,11 @@ class ViewController: UIViewController {
             let mesh = xatlas.mesh(at: 0)
             
             let points = mesh.applyUv(points: originalPoints)
-            //            var bb = self.boundingBox(positions: points.map{$0.pos})
+            var bb = self.boundingBox(positions: points.map{$0.pos})
             vertices = points.map{p in
-                //                let n = p.pos-bb.min
+                let n = p.pos-bb.min
                 let uv = (p.uv - SIMD2<Float>(0.5,0.5))*2
-                let color = simd_float4(1.0,0,0,1.0) //simd_normalize(SIMD4<Float32>( p.pos.x,p.pos.y,p.pos.z,1.0))
+                let color = simd_normalize(SIMD4<Float32>( p.pos.x,p.pos.y,p.pos.z,1.0))
                 return TextureFromVertexColor.Argument(position: SIMD4<Float32>( p.pos.x,p.pos.y,p.pos.z,1.0), uv: uv, color: color)
             }
             indices = mesh.indices.flatMap{[$0.x,$0.y,$0.z]}

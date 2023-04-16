@@ -19,8 +19,6 @@ public class TextureFromVertexColor{
             self.color = color
         }
     }
-    let textureWidth = 256
-    let textureHeight = 256
     private var device: MTLDevice?
     private var commandQueue: MTLCommandQueue?
     private var pipelineState: MTLRenderPipelineState?
@@ -44,23 +42,10 @@ public class TextureFromVertexColor{
         pipelineDescriptor.fragmentFunction = fragmentFunction
         
         pipelineDescriptor.colorAttachments[0].pixelFormat = .rgba8Unorm;
-        //        let vertexDescriptor = MTLVertexDescriptor()
-        //        vertexDescriptor.attributes[0].format = .float4
-        //        vertexDescriptor.attributes[0].offset = 0
-        //        vertexDescriptor.attributes[0].bufferIndex = 0
-        //        vertexDescriptor.attributes[1].format = .float2
-        //        vertexDescriptor.attributes[1].offset = MemoryLayout<SIMD4<Float32>>.stride
-        //        vertexDescriptor.attributes[1].bufferIndex = 0
-        //        vertexDescriptor.attributes[2].format = .float4
-        //        vertexDescriptor.attributes[2].offset = MemoryLayout<SIMD4<Float32>>.stride + MemoryLayout<SIMD2<Float>>.size
-        //        vertexDescriptor.attributes[2].bufferIndex = 0
-        //        vertexDescriptor.layouts[0].stride = MemoryLayout<Vertex>.stride
-        //        pipelineDescriptor.vertexDescriptor = vertexDescriptor
-        
         pipelineState = try! device.makeRenderPipelineState(descriptor: pipelineDescriptor)
         commandQueue = device.makeCommandQueue()
     }
-    public func draw(vertices:[Argument],indices:[UInt32])->CGImage?{
+    public func draw(vertices:[Argument],indices:[UInt32],textureWidth:Int = 256,textureHeight:Int = 256)->CGImage?{
         guard let device = self.device else {
             return nil
         }
