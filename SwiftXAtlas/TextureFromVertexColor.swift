@@ -9,18 +9,18 @@ import Foundation
 import Metal
 import CoreGraphics
 public class TextureFromVertexColor{
-    let textureWidth = 256
-    let textureHeight = 256
-    public struct Vertex {
-        var position: SIMD4<Float32>
-        var uv: SIMD2<Float32>
-        var color: SIMD4<Float32>
+    public struct Argument {
+        public var position: SIMD4<Float32>
+        public var uv: SIMD2<Float32>
+        public var color: SIMD4<Float32>
         public init(position: SIMD4<Float32>, uv: SIMD2<Float32>, color: SIMD4<Float32>) {
             self.position = position
             self.uv = uv
             self.color = color
         }
     }
+    let textureWidth = 256
+    let textureHeight = 256
     private var device: MTLDevice?
     private var commandQueue: MTLCommandQueue?
     private var pipelineState: MTLRenderPipelineState?
@@ -31,7 +31,7 @@ public class TextureFromVertexColor{
             throw NSError(domain: "resource not found", code: 0)
         }
         let source =  try String(contentsOf: shadersUrl)
-
+        
         guard let device = MTLCreateSystemDefaultDevice() else {
             fatalError("Metal is not supported on this device")
         }
@@ -60,7 +60,7 @@ public class TextureFromVertexColor{
         pipelineState = try! device.makeRenderPipelineState(descriptor: pipelineDescriptor)
         commandQueue = device.makeCommandQueue()
     }
-    public func draw(vertices:[Vertex],indices:[UInt32])->CGImage?{
+    public func draw(vertices:[Argument],indices:[UInt32])->CGImage?{
         guard let device = self.device else {
             return nil
         }
@@ -89,7 +89,7 @@ public class TextureFromVertexColor{
                                         znear: 0.0,
                                         zfar: 1.0))
         
-        let vertexBuffer = device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count, options: [])
+        let vertexBuffer = device.makeBuffer(bytes: vertices, length: MemoryLayout<Argument>.stride * vertices.count, options: [])
         
         encoder.setRenderPipelineState(pipelineState!)
         encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)

@@ -10,15 +10,13 @@ import UIKit
 import SwiftStanfordBunny
 import simd
 import SwiftXAtlas
-import XAtlasObjc
 
-class ExampleArgument:XAtlasArgument{
-    
+class ExampleArgument:SwiftXAtlasArgument{
     var points:[Point]
     var indices:[UInt32]
     
-    func indexFormat() -> IndexFormat {
-        return IndexFormat.uint32
+    func indexFormat()->SwiftIndexFormat{
+        return .uint32
     }
     
     func vertexCount() -> UInt32 {
@@ -50,7 +48,7 @@ class ExampleArgument:XAtlasArgument{
         self.indices = indices.flatMap{$0.map{UInt32($0)}}
     }
 }
-struct Point:BunnyPointProtocol{
+struct Point:BunnyPointProtocol,SwiftXAtlasUVProtocol{
     var pos: SIMD3<Float>
     var normal: SIMD3<Float>
     var color: SIMD4<Float>
@@ -77,40 +75,38 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         let bunny = SwiftStanfordBunny<Point>.instance()
-        let (points,faces) = try! bunny.load()
+        let (originalPoints,faces) = try! bunny.load()
         let texture = TextureFromVertexColor()
         try! texture.setup()
         
-        var vertices = points.map{p in
+        var vertices = originalPoints.map{p in
             var color = SIMD4<Float32>(1.0,1.0,1.0,1.0)
             let uv = (p.uv - SIMD2<Float32>(0.5,0.5))*2
-            return TextureFromVertexColor.Vertex(position: SIMD4<Float32>( p.pos.x,p.pos.y,p.pos.z,1.0), uv: uv, color: color)
+            return TextureFromVertexColor.Argument(position: SIMD4<Float32>( p.pos.x,p.pos.y,p.pos.z,1.0), uv: uv, color: color)
         }
         var indices = faces.flatMap{$0.map{UInt32($0)}}
-        //        vertices = [
-        //            TextureFromVertexColor.Vertex(position: SIMD4<Float32>.zero, uv: SIMD2<Float>(100,0), color: SIMD4<Float>(1,0,0,1)),
-        //            TextureFromVertexColor.Vertex(position: SIMD4<Float32>.zero, uv: SIMD2<Float>(-100,0), color: SIMD4<Float>(0,1,0,1)),
-        //            TextureFromVertexColor.Vertex(position: SIMD4<Float32>.zero, uv: SIMD2<Float>(0,100), color: SIMD4<Float>(0,0,1,1)),
-        //        ]
-        //        indices = [0,1,2]
+        if false {
+            let xatlas = SwiftXAtlas()
+            xatlas.generate([ExampleArgument(points: originalPoints, indices: faces)])
+            let mesh = xatlas.mesh(at: 0)
+            
+            let points = mesh.applyUv(points: originalPoints)
+//            var bb = self.boundingBox(positions: points.map{$0.pos})
+            vertices = points.map{p in
+//                let n = p.pos-bb.min
+                let uv = (p.uv - SIMD2<Float>(0.5,0.5))*2
+                var color = SIMD4<Float32>(1.0,1.0,0.0,1.0)
+                return TextureFromVertexColor.Argument(position: SIMD4<Float32>( p.pos.x,p.pos.y,p.pos.z,1.0), uv: uv, color: color)
+            }
+            indices = mesh.indices.flatMap{[$0.x,$0.y,$0.z]}
+        }
         let image = texture.draw(vertices: vertices, indices: indices)
-        
-        //        let image = texture.draw(vertices: vertices, indices: faces.flatMap{$0.map{UInt32($0)}})
-        //        let xatlas = XAtlas()
-        //        xatlas.generate([ExampleArgument(points: points, indices: faces)])
-        //        let mesh = xatlas.mesh(at: 0)
-        //        var bb = self.boundingBox(positions: points.map{$0.pos})
-        //        var vertices = points.map{p in
-        //            let n = p.pos-bb.min
-        //            var color = SIMD4<Float32>(1.0,1.0,1.0,1.0)
-        //            return TextureFromVertexColor.Vertex(position: SIMD4<Float32>( p.pos.x,p.pos.y,p.pos.z,1.0), uv: SIMD2<Float32>.zero, color: color)
-        //        }
-        //        for (index,mapping) in mesh!.mappings.enumerated(){
-        //            var uv = SIMD2<Float32>(Float32(truncating: mesh!.uvs[index*2]),Float32(truncating: mesh!.uvs[index*2+1]))
-        //            uv = (uv - SIMD2<Float32>(0.5,0.5))*2
-        //            vertices[Int(UInt(mapping.int32Value))].uv = uv
-        //        }
-        //        let image = texture.draw(vertices: vertices, indices: mesh!.indices.map{UInt32(truncating: $0)})
+        //                        for (index,mapping) in mesh!.mappings.enumerated(){
+        //                            var uv = SIMD2<Float32>(Float32(truncating: mesh!.uvs[index*2]),Float32(truncating: mesh!.uvs[index*2+1]))
+        //                            uv = (uv - SIMD2<Float32>(0.5,0.5))*2
+        //                            vertices[Int(UInt(mapping.int32Value))].uv = uv
+        //                        }
+        //            let image = texture.draw(vertices: vertices, indices: mesh!.indices.map{UInt32(truncating: $0)})
         let imageView = UIImageView(image:UIImage(cgImage: image!))
         imageView.frame = self.view.frame
         self.view.addSubview(imageView)
