@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0936A4792DCEF4810013AF8D /* BunnyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0936A4782DCEF4730013AF8D /* BunnyViewController.swift */; };
+		0936A47B2DCEF8C70013AF8D /* ARViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0936A47A2DCEF8C30013AF8D /* ARViewController.swift */; };
 		097CBF6929EBD9B700A8DF80 /* SwiftXAtlas in Frameworks */ = {isa = PBXBuildFile; productRef = 097CBF6829EBD9B700A8DF80 /* SwiftXAtlas */; };
 		09A94FDC29EC7BBA0018B28D /* SwiftStanfordBunny in Frameworks */ = {isa = PBXBuildFile; productRef = 09A94FDB29EC7BBA0018B28D /* SwiftStanfordBunny */; };
 		09C0CFCA29EA5B8400CA2762 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C0CFC929EA5B8400CA2762 /* AppDelegate.swift */; };
@@ -18,6 +20,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0936A4782DCEF4730013AF8D /* BunnyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BunnyViewController.swift; sourceTree = "<group>"; };
+		0936A47A2DCEF8C30013AF8D /* ARViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARViewController.swift; sourceTree = "<group>"; };
 		09B175C729EBD97E00E7D8C9 /* SwiftXAtlas */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = SwiftXAtlas; path = ..; sourceTree = "<group>"; };
 		09C0CFC629EA5B8400CA2762 /* XAtlasExampleApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XAtlasExampleApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09C0CFC929EA5B8400CA2762 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -78,6 +82,8 @@
 		09C0CFC829EA5B8400CA2762 /* XAtlasExampleApp */ = {
 			isa = PBXGroup;
 			children = (
+				0936A47A2DCEF8C30013AF8D /* ARViewController.swift */,
+				0936A4782DCEF4730013AF8D /* BunnyViewController.swift */,
 				09C0CFC929EA5B8400CA2762 /* AppDelegate.swift */,
 				09C0CFCB29EA5B8400CA2762 /* SceneDelegate.swift */,
 				09C0CFCD29EA5B8400CA2762 /* ViewController.swift */,
@@ -170,6 +176,8 @@
 				09C0CFCE29EA5B8400CA2762 /* ViewController.swift in Sources */,
 				09C0CFCA29EA5B8400CA2762 /* AppDelegate.swift in Sources */,
 				09C0CFCC29EA5B8400CA2762 /* SceneDelegate.swift in Sources */,
+				0936A4792DCEF4810013AF8D /* BunnyViewController.swift in Sources */,
+				0936A47B2DCEF8C70013AF8D /* ARViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -319,6 +327,7 @@
 				DEVELOPMENT_TEAM = 5M67Q8ZZ53;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = XAtlasExampleApp/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Use Camera";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -347,6 +356,7 @@
 				DEVELOPMENT_TEAM = 5M67Q8ZZ53;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = XAtlasExampleApp/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Use Camera";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
