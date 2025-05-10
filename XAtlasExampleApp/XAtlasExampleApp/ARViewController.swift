@@ -50,10 +50,48 @@ class ARViewController: UIViewController {
             let configuration = buildConfigure()
             arView.session.run(configuration)
         }
+        func initExportButton() {
+            let exportButton = UIButton(type: .system)
+            exportButton.setTitle("Export", for: .normal)
+            exportButton.titleLabel?.font = UIFont.systemFont(
+                ofSize: 20,
+                weight: .medium
+            )
+            exportButton.backgroundColor = UIColor.systemBlue
+            exportButton.setTitleColor(.white, for: .normal)
+            exportButton.layer.cornerRadius = 8
+            exportButton.clipsToBounds = true
+            exportButton.addTarget(
+                self,
+                action: #selector(export),
+                for: .touchUpInside
+            )
+            let stackView = UIStackView(arrangedSubviews: [exportButton])
+            stackView.axis = .horizontal
+            stackView.spacing = 8
+            stackView.alignment = .center
+            stackView.distribution = .equalSpacing
+            stackView.translatesAutoresizingMaskIntoConstraints = false
+
+            self.view.addSubview(stackView)
+            NSLayoutConstraint.activate([
+                stackView.centerXAnchor.constraint(
+                    equalTo: self.view.centerXAnchor
+                ),
+                stackView.bottomAnchor.constraint(
+                    equalTo: self.view.safeAreaLayoutGuide.bottomAnchor,
+                    constant: -20
+                ),
+            ])
+        }
         arView.session.delegate = self
         super.viewDidLoad()
         self.view.addSubview(arView)
         initARView()
+        initExportButton()
+    }
+    override func export(_ sender: Any?) {
+
     }
 }
 extension ARMeshGeometry {
