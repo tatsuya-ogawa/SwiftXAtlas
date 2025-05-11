@@ -14,7 +14,55 @@
 
 import ARKit
 import RealityKit
+import SwiftXAtlas
 import UIKit
+
+class ARXAtlasArgument: SwiftXAtlasArgument {
+    var vertices: [SIMD3<Float>]
+    var normals: [SIMD3<Float>]
+    var indices: [UInt32]
+
+    func indexFormat() -> SwiftIndexFormat {
+        return .uint32
+    }
+
+    func vertexCount() -> UInt32 {
+        return UInt32(self.vertices.count)
+    }
+
+    func vertexPositionData() -> UnsafeRawPointer {
+        return UnsafeRawPointer(self.vertices)
+    }
+
+    func vertexPositionStride() -> UInt32 {
+        return UInt32(MemoryLayout<SIMD3<Float>>.stride)
+    }
+
+    func vertexNormalData() -> UnsafeRawPointer? {
+        return UnsafeRawPointer(self.normals)
+    }
+
+    func vertexNormalStride() -> UInt32 {
+        return UInt32(MemoryLayout<SIMD3<Float>>.stride)
+    }
+
+    func indexCount() -> UInt32 {
+        return UInt32(indices.count)
+    }
+
+    func indexData() -> UnsafePointer<UInt32> {
+        return UnsafePointer(self.indices)
+    }
+
+    init(vertices: [SIMD3<Float>], normals: [SIMD3<Float>], indices: [[UInt32]])
+    {
+        self.vertices = vertices
+        self.normals = normals
+        self.indices = indices.flatMap { i in
+            return i
+        }
+    }
+}
 
 struct MeshSnapshot {
     let id: UUID
@@ -24,7 +72,9 @@ struct MeshSnapshot {
     let faces: [[UInt32]]
     let timestamp: TimeInterval
     let image: UIImage
-    let cameraTransform: simd_float4x4
+    let worldToCameraMatrix: simd_float4x4
+    let viewProjectionMatrix: simd_float4x4
+    var uvs: [simd_float2]?
 }
 class ARViewController: UIViewController {
     private(set) var snapshots: [UUID: MeshSnapshot] = [:]
@@ -63,7 +113,7 @@ class ARViewController: UIViewController {
             exportButton.clipsToBounds = true
             exportButton.addTarget(
                 self,
-                action: #selector(export),
+                action: #selector(generateMesh),
                 for: .touchUpInside
             )
             let stackView = UIStackView(arrangedSubviews: [exportButton])
@@ -90,8 +140,83 @@ class ARViewController: UIViewController {
         initARView()
         initExportButton()
     }
-    override func export(_ sender: Any?) {
+    func createARXAtlasArgument(meshes: [MeshSnapshot]) -> ARXAtlasArgument {
+        var vertices: [SIMD3<Float>] = []
+        var normals: [SIMD3<Float>] = []
+        var indices: [[UInt32]] = []
+        var totalVertices: Int = 0
+        for v in meshes {
+            vertices.append(contentsOf: v.vertices)
+            normals.append(contentsOf: v.normals)
+            indices.append(
+                contentsOf: v.faces.map { face in
+                    face.map { f in
+                        return f + UInt32(totalVertices)
+                    }
+                }
+            )
+            totalVertices += v.vertices.count
+        }
+        return ARXAtlasArgument(
+            vertices: vertices,
+            normals: normals,
+            indices: indices
+        )
+    }
+    func bakeTexture(meshes: [MeshSnapshot]) throws {
+        let xatlas = SwiftXAtlas()
+        let argument = createARXAtlasArgument(meshes: meshes)
+        xatlas.generate([argument])
+        let resultMesh = xatlas.mesh(at: 0)
+        var totalUv = 0
+        var meshes = meshes.map { m in
+            var m = m
+            let uvs = Array(resultMesh.uvs[totalUv..<m.vertices.count])
+            m.uvs = uvs
+            totalUv += m.vertices.count
+            return m
+        }
+        var baker = ProjectionTextureBaker()
+        let outputTexture = baker.getOutputTexture(
+            textureWidth: 4096,
+            textureHeight: 4096
+        )
+        guard let outputTexture else {
+            fatalError("outputTexture is nil")
+        }
+        try baker.setup()
+        for mesh in meshes {
+            let colorTexture = try baker.makeTexture(from: mesh.image)
+            guard let colorTexture else {
+                fatalError("colorTexture is nil")
+            }
+            guard let uvs = mesh.uvs else {
+                fatalError("uvs is nil")
+            }
+            let faces = mesh.faces.flatMap { $0 }
 
+            let _ = baker.draw(
+                vertices: mesh.vertices,
+                uvs: uvs,
+                indices: faces,
+                worldToCameraMatrix: mesh.worldToCameraMatrix,
+                viewProjMatrix: mesh.viewProjectionMatrix,
+                colorTexture: colorTexture,
+                outputTexture: outputTexture
+            )
+        }
+    }
+    @objc func generateMesh(_ sender: Any?) {
+        var meshes = self.snapshots.map { (k, v) in
+            return v
+        }
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                try self.bakeTexture(meshes: meshes)
+            } catch {
+
+            }
+        }
     }
 }
 extension ARMeshGeometry {
@@ -195,7 +320,10 @@ extension ARViewController: ARSessionDelegate {
             faces: faces,
             timestamp: frame?.timestamp ?? 0.0,
             image: image,
-            cameraTransform: frame?.camera.transform ?? simd_float4x4(1.0)
+            worldToCameraMatrix: frame?.camera.transform.inverse
+                ?? simd_float4x4(1.0),
+            viewProjectionMatrix: frame?.camera.viewMatrix(for: .landscapeLeft)
+                ?? simd_float4x4(1.0)
         )
     }
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {

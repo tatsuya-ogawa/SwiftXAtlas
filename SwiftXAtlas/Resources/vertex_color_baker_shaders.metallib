@@ -1,17 +1,17 @@
 #include <metal_stdlib>
-struct VertexIn {
+struct VertexColorBakerIn {
     float4 position;
     float2 uv;
     float4 color;
 };
 
-struct VertexOut {
+struct VertexColorBakerOut {
     float4 position [[position]];
     float2 uv;
     float4 color;
 };
 
-vertex VertexOut vertexShader(constant VertexIn *vertices[[buffer(0)]],
+vertex VertexColorBakerOut vertexColorBakerVertexShader(constant VertexColorBaker *vertices[[buffer(0)]],
                               const unsigned int vertex_id [[ vertex_id ]])
 {
     VertexOut out;
@@ -22,6 +22,6 @@ vertex VertexOut vertexShader(constant VertexIn *vertices[[buffer(0)]],
     return out;
 }
 
-fragment half4 fragmentShader(VertexOut in [[stage_in]]) {
+fragment half4 vertexColorBakerFragmentShader(VertexOut in [[stage_in]]) {
     return half4(in.color.r,in.color.g,in.color.b, 1.0);
 }

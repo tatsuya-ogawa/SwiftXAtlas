@@ -8,7 +8,7 @@
 import Foundation
 import Metal
 import CoreGraphics
-public class TextureFromVertexColor{
+public class VertexColorTextureBaker{
     public struct Argument {
         public var position: SIMD4<Float32>
         public var uv: SIMD2<Float32>
@@ -25,7 +25,7 @@ public class TextureFromVertexColor{
     public init() {
     }
     public func setup()throws{
-        guard let shadersUrl = Bundle.module.url(forResource: "shaders", withExtension: "metallib") else {
+        guard let shadersUrl = Bundle.module.url(forResource: "vertex_color_baker_shaders", withExtension: "metallib") else {
             throw NSError(domain: "resource not found", code: 0)
         }
         let source =  try String(contentsOf: shadersUrl)
@@ -35,8 +35,8 @@ public class TextureFromVertexColor{
         }
         self.device = device
         let library = try device.makeLibrary(source: source, options: nil)
-        let vertexFunction = library.makeFunction(name: "vertexShader")
-        let fragmentFunction = library.makeFunction(name: "fragmentShader")
+        let vertexFunction = library.makeFunction(name: "vertexColorBakerVertexShader")
+        let fragmentFunction = library.makeFunction(name: "vertexColorBakerFragmentShader")
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
         pipelineDescriptor.vertexFunction = vertexFunction
         pipelineDescriptor.fragmentFunction = fragmentFunction
