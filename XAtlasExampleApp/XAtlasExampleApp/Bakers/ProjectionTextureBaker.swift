@@ -107,7 +107,6 @@ public class ProjectionTextureBaker {
         vertices: [SIMD3<Float>],
         uvs: [SIMD2<Float>],
         indices: [UInt32],
-        modelMatrix: matrix_float4x4,
         viewProjMatrix: matrix_float4x4,
         colorTexture: MTLTexture,
         outputTexture: MTLTexture
@@ -166,21 +165,13 @@ public class ProjectionTextureBaker {
         )!
         encoder.setVertexBuffer(uvBuf, offset: 0, index: 1)
 
-        var m = modelMatrix
-        let mBuf = device.makeBuffer(
-            bytes: &m,
-            length: MemoryLayout<matrix_float4x4>.stride,
-            options: []
-        )!
-        encoder.setVertexBuffer(mBuf, offset: 0, index: 2)
-
         var vp = viewProjMatrix
         let vpBuf = device.makeBuffer(
             bytes: &vp,
             length: MemoryLayout<matrix_float4x4>.stride,
             options: []
         )!
-        encoder.setVertexBuffer(vpBuf, offset: 0, index: 3)
+        encoder.setVertexBuffer(vpBuf, offset: 0, index: 2)
 
         // テクスチャ 0: 投影元カラー
         encoder.setFragmentTexture(colorTexture, index: 0)

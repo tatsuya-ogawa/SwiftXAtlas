@@ -67,7 +67,7 @@ class ARXAtlasArgument: SwiftXAtlasArgument {
 struct MeshSnapshot {
     let id: UUID
     let transform: simd_float4x4
-    let vertices: [simd_float3]
+    var vertices: [simd_float3]
     let normals: [simd_float3]
     let faces: [[UInt32]]
     let timestamp: TimeInterval
@@ -167,11 +167,19 @@ class ARViewController: UIViewController {
     }
     func bakeTexture(meshes: [MeshSnapshot]) throws {
         let xatlas = SwiftXAtlas()
+        var meshes = meshes.map { m in
+            var m = m
+            m.vertices = m.vertices.map { v in
+                let newV = m.modelMatrix * simd_float4(v.x,v.y,v.z,1.0)
+                return simd_float3(newV.x, newV.y, newV.z)
+            }
+            return m
+        }
         let argument = createARXAtlasArgument(meshes: meshes)
         xatlas.generate([argument])
         let resultMesh = xatlas.mesh(at: 0)
         var totalUv = 0
-        var meshes = meshes.map { m in
+        meshes = meshes.map { m in
             var m = m
             let uvs = Array(resultMesh.uvs[totalUv..<(totalUv+m.vertices.count)])
             m.uvs = uvs
@@ -200,12 +208,47 @@ class ARViewController: UIViewController {
                 vertices: mesh.vertices,
                 uvs: uvs,
                 indices: faces,
-                modelMatrix: mesh.modelMatrix,
                 viewProjMatrix: mesh.viewProjectionMatrix,
                 colorTexture: colorTexture,
                 outputTexture: outputTexture
             )
         }
+        let image = baker.image(from: outputTexture)
+        DispatchQueue.main.async{
+            let image = UIImage(cgImage: image!)
+            self.shareImageAsPNG(image, from: self)
+        }
+    }
+    func shareImageAsPNG(_ image: UIImage, from viewController: UIViewController) {
+        // 1. UIImage を PNG データに変換
+        guard let pngData = image.pngData() else {
+            print("Error: PNG 変換に失敗しました")
+            return
+        }
+
+        // 2. 一時ディレクトリにファイルとして保存
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let fileURL = tempDirectory.appendingPathComponent("shared_image.png")
+
+        do {
+            try pngData.write(to: fileURL, options: .atomic)
+        } catch {
+            print("Error: ファイル書き出しに失敗しました → \(error)")
+            return
+        }
+
+        // 3. UIActivityViewController を生成して表示
+        let activityVC = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+        // iPad 対応（ポップオーバー表示先の指定）
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = viewController.view
+            popover.sourceRect = CGRect(x: viewController.view.bounds.midX,
+                                        y: viewController.view.bounds.midY,
+                                        width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+
+        viewController.present(activityVC, animated: true, completion: nil)
     }
     @objc func generateMesh(_ sender: Any?) {
         var meshes = self.snapshots.map { (k, v) in
