@@ -26,5 +26,9 @@ fragment half4 projectionBakerFragmentFunction(
     ProjectionBakerOut in         [[ stage_in ]],
     texture2d<float>  colorTexture [[ texture(0) ]]
 ) {
-    return half4(colorTexture.sample(colorSampler, in.projUV));
+    float2 uv = in.projUV;
+    if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+        discard_fragment();
+    }
+    return half4(colorTexture.sample(colorSampler, uv));
 }

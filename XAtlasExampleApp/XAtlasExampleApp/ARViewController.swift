@@ -77,6 +77,12 @@ struct MeshSnapshot {
     var uvs: [simd_float2]?
 }
 class ARViewController: UIViewController {
+    private let activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.hidesWhenStopped = true
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        return indicator
+    }()
     private(set) var snapshots: [UUID: MeshSnapshot] = [:]
     private var baker = ProjectionTextureBaker()
     override func viewDidLoad() {
@@ -141,6 +147,15 @@ class ARViewController: UIViewController {
         initARView()
         initExportButton()
         try! baker.setup()
+        self.view.addSubview(activityIndicator)
+        NSLayoutConstraint.activate([
+            activityIndicator.centerXAnchor.constraint(
+                equalTo: view.centerXAnchor
+            ),
+            activityIndicator.centerYAnchor.constraint(
+                equalTo: view.centerYAnchor
+            ),
+        ])
     }
     func createARXAtlasArgument(meshes: [MeshSnapshot]) -> ARXAtlasArgument {
         var vertices: [SIMD3<Float>] = []
@@ -149,7 +164,7 @@ class ARViewController: UIViewController {
         var totalVertices: Int = 0
         for v in meshes {
             vertices.append(contentsOf: v.vertices)
-            normals.append(contentsOf: v.normals)
+            //            normals.append(contentsOf: v.normals)
             indices.append(
                 contentsOf: v.faces.map { face in
                     face.map { f in
@@ -170,7 +185,7 @@ class ARViewController: UIViewController {
         var meshes = meshes.map { m in
             var m = m
             m.vertices = m.vertices.map { v in
-                let newV = m.modelMatrix * simd_float4(v.x,v.y,v.z,1.0)
+                let newV = m.modelMatrix * simd_float4(v.x, v.y, v.z, 1.0)
                 return simd_float3(newV.x, newV.y, newV.z)
             }
             return m
@@ -181,12 +196,14 @@ class ARViewController: UIViewController {
         var totalUv = 0
         meshes = meshes.map { m in
             var m = m
-            let uvs = Array(resultMesh.uvs[totalUv..<(totalUv+m.vertices.count)])
+            let uvs = Array(
+                resultMesh.uvs[totalUv..<(totalUv + m.vertices.count)]
+            )
             m.uvs = uvs
             totalUv += m.vertices.count
             return m
         }
-       
+
         let outputTexture = baker.getOutputTexture(
             textureWidth: 4096,
             textureHeight: 4096
@@ -214,12 +231,16 @@ class ARViewController: UIViewController {
             )
         }
         let image = baker.image(from: outputTexture)
-        DispatchQueue.main.async{
+        DispatchQueue.main.async {
+            self.activityIndicator.stopAnimating()
             let image = UIImage(cgImage: image!)
             self.shareImageAsPNG(image, from: self)
         }
     }
-    func shareImageAsPNG(_ image: UIImage, from viewController: UIViewController) {
+    func shareImageAsPNG(
+        _ image: UIImage,
+        from viewController: UIViewController
+    ) {
         // 1. UIImage を PNG データに変換
         guard let pngData = image.pngData() else {
             print("Error: PNG 変換に失敗しました")
@@ -238,19 +259,28 @@ class ARViewController: UIViewController {
         }
 
         // 3. UIActivityViewController を生成して表示
-        let activityVC = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+        let activityVC = UIActivityViewController(
+            activityItems: [fileURL],
+            applicationActivities: nil
+        )
         // iPad 対応（ポップオーバー表示先の指定）
         if let popover = activityVC.popoverPresentationController {
             popover.sourceView = viewController.view
-            popover.sourceRect = CGRect(x: viewController.view.bounds.midX,
-                                        y: viewController.view.bounds.midY,
-                                        width: 0, height: 0)
+            popover.sourceRect = CGRect(
+                x: viewController.view.bounds.midX,
+                y: viewController.view.bounds.midY,
+                width: 0,
+                height: 0
+            )
             popover.permittedArrowDirections = []
         }
 
         viewController.present(activityVC, animated: true, completion: nil)
     }
     @objc func generateMesh(_ sender: Any?) {
+        DispatchQueue.main.async {
+            self.activityIndicator.startAnimating()
+        }
         var meshes = self.snapshots.map { (k, v) in
             return v
         }
@@ -258,7 +288,9 @@ class ARViewController: UIViewController {
             do {
                 try self.bakeTexture(meshes: meshes)
             } catch {
-
+                DispatchQueue.main.async {
+                    self.activityIndicator.stopAnimating()
+                }
             }
         }
     }
@@ -375,7 +407,9 @@ extension ARViewController: ARSessionDelegate {
     }
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
         for anchor in anchors {
-            if let meshAnchor = anchor as? ARMeshAnchor ,let frame = session.currentFrame {
+            if let meshAnchor = anchor as? ARMeshAnchor,
+                let frame = session.currentFrame
+            {
                 snapshots[meshAnchor.identifier] = snapshot(
                     from: meshAnchor,
                     frame: frame
@@ -386,7 +420,9 @@ extension ARViewController: ARSessionDelegate {
 
     func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
         for anchor in anchors {
-            if let meshAnchor = anchor as? ARMeshAnchor ,let frame = session.currentFrame{
+            if let meshAnchor = anchor as? ARMeshAnchor,
+                let frame = session.currentFrame
+            {
                 snapshots[meshAnchor.identifier] = snapshot(
                     from: meshAnchor,
                     frame: frame
