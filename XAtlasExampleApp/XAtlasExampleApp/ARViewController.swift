@@ -17,10 +17,15 @@ import RealityKit
 import SwiftXAtlas
 import UIKit
 
-class ARXAtlasArgument: SwiftXAtlasArgument {
+class ARXAtlasArgument: SwiftXAtlasArgument, SwiftXAtlasBatchUVProtocol {
+    func setUv(index: UInt32, uv: simd_float2) {
+        self.uvs[Int(index)] = uv
+    }
+
     var vertices: [SIMD3<Float>]
     var normals: [SIMD3<Float>]
     var indices: [UInt32]
+    var uvs: [SIMD2<Float>]
 
     func indexFormat() -> SwiftIndexFormat {
         return .uint32
@@ -61,14 +66,29 @@ class ARXAtlasArgument: SwiftXAtlasArgument {
         self.indices = indices.flatMap { i in
             return i
         }
+        self.uvs = Array(repeating: SIMD2<Float>(0, 0), count: vertices.count)
     }
 }
-
+extension Array {
+    /// 配列を size 個ずつに分割して二次元配列にする
+    func chunked(into size: Int) -> [[Element]] {
+        guard size > 0 else { return [] }
+        var chunks: [[Element]] = []
+        chunks.reserveCapacity((self.count + size - 1) / size)
+        for start in stride(from: 0, to: self.count, by: size) {
+            let end =
+                index(start, offsetBy: size, limitedBy: self.count)
+                ?? self.count
+            chunks.append(Array(self[start..<end]))
+        }
+        return chunks
+    }
+}
 struct MeshSnapshot {
     let id: UUID
     let transform: simd_float4x4
     var vertices: [simd_float3]
-    let normals: [simd_float3]
+    var normals: [simd_float3]
     let faces: [[UInt32]]
     let timestamp: TimeInterval
     let image: UIImage
@@ -164,7 +184,7 @@ class ARViewController: UIViewController {
         var totalVertices: Int = 0
         for v in meshes {
             vertices.append(contentsOf: v.vertices)
-            //            normals.append(contentsOf: v.normals)
+            normals.append(contentsOf: v.normals)
             indices.append(
                 contentsOf: v.faces.map { face in
                     face.map { f in
@@ -188,16 +208,28 @@ class ARViewController: UIViewController {
                 let newV = m.modelMatrix * simd_float4(v.x, v.y, v.z, 1.0)
                 return simd_float3(newV.x, newV.y, newV.z)
             }
+            let normalMatrix = simd_transpose(
+                simd_inverse(simd_float4x4(m.modelMatrix))
+            )
+
+            m.normals = m.normals.map { n in
+                let n = normalize(normalMatrix * simd_float4(n.x, n.y, n.z, 1.0))
+                return simd_float3(n.x, n.y, n.z)
+            }
             return m
         }
         let argument = createARXAtlasArgument(meshes: meshes)
         xatlas.generate([argument])
-        let resultMesh = xatlas.mesh(at: 0)
+        let mesh = xatlas.mesh(at: 0)
+        mesh.applyUvs(mesh: argument)
+
+        try self.exportAndShareOBJ(argument: argument)
+        return
         var totalUv = 0
         meshes = meshes.map { m in
             var m = m
             let uvs = Array(
-                resultMesh.uvs[totalUv..<(totalUv + m.vertices.count)]
+                argument.uvs[totalUv..<(totalUv + m.vertices.count)]
             )
             m.uvs = uvs
             totalUv += m.vertices.count
@@ -235,6 +267,56 @@ class ARViewController: UIViewController {
             self.activityIndicator.stopAnimating()
             let image = UIImage(cgImage: image!)
             self.shareImageAsPNG(image, from: self)
+        }
+    }
+    func shareFile(_ fileURL: URL, from viewController: UIViewController) {
+        let activityVC = UIActivityViewController(
+            activityItems: [fileURL],
+            applicationActivities: nil
+        )
+        if let popover = activityVC.popoverPresentationController {
+            popover.sourceView = viewController.view
+            popover.sourceRect = CGRect(
+                x: viewController.view.bounds.midX,
+                y: viewController.view.bounds.midY,
+                width: 0,
+                height: 0
+            )
+            popover.permittedArrowDirections = []
+        }
+        viewController.present(activityVC, animated: true, completion: nil)
+    }
+
+    // MARK: — OBJ エクスポート＋共有
+    func exportAndShareOBJ(
+        argument: ARXAtlasArgument,
+        filename: String = "xatlas_uv.obj"
+    ) throws {
+        let uvs = argument.uvs
+        let vertexCount = argument.vertices.count
+
+        var objText = ""
+        for i in 0..<vertexCount {
+            let p = argument.vertices[i]
+            objText += String(format: "v %f %f %f\n", p.x, p.y, p.z)
+        }
+        for i in 0..<vertexCount {
+            let uv = uvs[i]
+            objText += String(format: "vt %f %f\n", uv.x, uv.y)
+        }
+        for t in argument.indices.chunked(into: 3) {
+            let i0 = t[0] + 1
+            let i1 = t[1] + 1
+            let i2 = t[2] + 1
+            objText += "f \(i0)/\(i0) \(i1)/\(i1) \(i2)/\(i2)\n"
+        }
+
+        let tempDir = FileManager.default.temporaryDirectory
+        let fileURL = tempDir.appendingPathComponent(filename)
+        try objText.write(to: fileURL, atomically: true, encoding: .utf8)
+
+        DispatchQueue.main.async {
+            self.shareFile(fileURL, from: self)
         }
     }
     func shareImageAsPNG(
