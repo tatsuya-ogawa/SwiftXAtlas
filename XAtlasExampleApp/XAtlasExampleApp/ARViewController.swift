@@ -72,6 +72,7 @@ struct MeshSnapshot {
     let faces: [[UInt32]]
     let timestamp: TimeInterval
     let image: UIImage
+    let modelMatrix: simd_float4x4
     let viewProjectionMatrix: simd_float4x4
     var uvs: [simd_float2]?
 }
@@ -170,12 +171,13 @@ class ARViewController: UIViewController {
         var totalUv = 0
         var meshes = meshes.map { m in
             var m = m
-            let uvs = Array(resultMesh.uvs[totalUv..<m.vertices.count])
+            let uvs = Array(resultMesh.uvs[totalUv..<(totalUv+m.vertices.count)])
             m.uvs = uvs
             totalUv += m.vertices.count
             return m
         }
         var baker = ProjectionTextureBaker()
+        try baker.setup()
         let outputTexture = baker.getOutputTexture(
             textureWidth: 4096,
             textureHeight: 4096
@@ -183,7 +185,6 @@ class ARViewController: UIViewController {
         guard let outputTexture else {
             fatalError("outputTexture is nil")
         }
-        try baker.setup()
         for mesh in meshes {
             let colorTexture = try baker.makeTexture(from: mesh.image)
             guard let colorTexture else {
@@ -198,6 +199,7 @@ class ARViewController: UIViewController {
                 vertices: mesh.vertices,
                 uvs: uvs,
                 indices: faces,
+                modelMatrix: mesh.modelMatrix,
                 viewProjMatrix: mesh.viewProjectionMatrix,
                 colorTexture: colorTexture,
                 outputTexture: outputTexture
@@ -323,6 +325,7 @@ extension ARViewController: ARSessionDelegate {
             faces: faces,
             timestamp: frame.timestamp,
             image: image,
+            modelMatrix: anchor.transform,
             viewProjectionMatrix: projectionMatrix * viewMatrix
         )
     }
