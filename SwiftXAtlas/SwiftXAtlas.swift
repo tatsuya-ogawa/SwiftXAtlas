@@ -37,9 +37,19 @@ public class SwiftXAtlasMesh:XAtlasMesh{
             return point
         }
     }
-    public func applyUvs<T:SwiftXAtlasBatchUVProtocol>(mesh:T){
+    public func applyUvs<T:SwiftXAtlasBatchUVProtocol>(mesh:T)->T{
         mappings.enumerated().forEach{(index,map) in
             mesh.setUv(index: map, uv: uvs[index])
+        }
+        return mesh
+    }
+    public func mappedIndices()->[simd_uint3]{
+        var mappingDict:[UInt32:UInt32] = [:]
+        mappings.enumerated().forEach{(index,map) in
+            mappingDict[UInt32(index)] = map
+        }
+        return indices.map{ i in
+            return simd_uint3(mappingDict[i.x]!,mappingDict[i.y]!,mappingDict[i.z]!)
         }
     }
 }

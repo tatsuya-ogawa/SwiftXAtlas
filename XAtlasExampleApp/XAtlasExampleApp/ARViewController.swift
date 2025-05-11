@@ -222,9 +222,10 @@ class ARViewController: UIViewController {
         xatlas.generate([argument])
         let mesh = xatlas.mesh(at: 0)
         mesh.applyUvs(mesh: argument)
+        argument.indices = mesh.mappedIndices().flatMap { [$0.x,$0.y,$0.z] }
 
-        try self.exportAndShareOBJ(argument: argument)
-        return
+//        try self.exportAndShareOBJ(argument: argument)
+//        return
         var totalUv = 0
         meshes = meshes.map { m in
             var m = m
