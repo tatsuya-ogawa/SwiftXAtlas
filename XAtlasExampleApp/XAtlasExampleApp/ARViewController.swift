@@ -202,7 +202,7 @@ class ARViewController: UIViewController {
     }
     func bakeTexture(meshes: [MeshSnapshot]) throws {
         let xatlas = SwiftXAtlas()
-        var meshes = meshes.map { m in
+        let meshes = meshes.map { m in
             var m = m
             m.vertices = m.vertices.map { v in
                 let newV = m.modelMatrix * simd_float4(v.x, v.y, v.z, 1.0)
@@ -221,21 +221,31 @@ class ARViewController: UIViewController {
         let argument = createARXAtlasArgument(meshes: meshes)
         xatlas.generate([argument])
         let mesh = xatlas.mesh(at: 0)
-        mesh.applyUvs(mesh: argument)
-        argument.indices = mesh.mappedIndices().flatMap { [$0.x,$0.y,$0.z] }
+//        mesh.applyUvs(mesh: argument)
+//        argument.indices = mesh.mappedIndices().flatMap { [$0.x,$0.y,$0.z] }
+        argument.vertices = mesh.mappings.enumerated().map{(index,map) in
+            return argument.vertices[Int(map)]
+        }
+        argument.normals = mesh.mappings.enumerated().map{(index,map) in
+            return argument.normals[Int(map)]
+        }
+        argument.indices = mesh.indices.flatMap{ i in
+            [i.x,i.y,i.z]
+        }
+        argument.uvs = mesh.uvs
 
 //        try self.exportAndShareOBJ(argument: argument)
 //        return
         var totalUv = 0
-        meshes = meshes.map { m in
-            var m = m
-            let uvs = Array(
-                argument.uvs[totalUv..<(totalUv + m.vertices.count)]
-            )
-            m.uvs = uvs
-            totalUv += m.vertices.count
-            return m
-        }
+//        meshes = meshes.map { m in
+//            var m = m
+//            let uvs = Array(
+//                argument.uvs[totalUv..<(totalUv + m.vertices.count)]
+//            )
+//            m.uvs = uvs
+//            totalUv += m.vertices.count
+//            return m
+//        }
 
         let outputTexture = baker.getOutputTexture(
             textureWidth: 4096,
@@ -249,15 +259,15 @@ class ARViewController: UIViewController {
             guard let colorTexture else {
                 fatalError("colorTexture is nil")
             }
-            guard let uvs = mesh.uvs else {
-                fatalError("uvs is nil")
-            }
-            let faces = mesh.faces.flatMap { $0 }
+//            guard let uvs = mesh.uvs else {
+//                fatalError("uvs is nil")
+//            }
+//            let faces = mesh.faces.flatMap { $0 }
 
             let _ = baker.draw(
-                vertices: mesh.vertices,
-                uvs: uvs,
-                indices: faces,
+                vertices: argument.vertices,
+                uvs: argument.uvs,
+                indices: argument.indices,
                 viewProjMatrix: mesh.viewProjectionMatrix,
                 colorTexture: colorTexture,
                 outputTexture: outputTexture

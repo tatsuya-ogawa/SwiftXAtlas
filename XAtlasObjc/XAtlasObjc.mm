@@ -138,7 +138,6 @@ xatlas::Atlas *atlas;
         cOptions.fixWinding = chartOptions.fixWinding;
     }
 
-    // packOptions が指定されていれば使用、それ以外はデフォルト
     xatlas::PackOptions pOptions;
     if (packOptions) {
         pOptions.padding = packOptions.padding;
