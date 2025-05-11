@@ -10,7 +10,6 @@ constexpr sampler colorSampler(filter::linear);
 vertex ProjectionBakerOut projectionBakerVertexShader(
     constant float3  *vertices        [[ buffer(0) ]],
     constant float2  *outputUVs       [[ buffer(1) ]],
-    constant float4x4 &worldToCameraMatrix [[ buffer(2) ]],
     constant float4x4 &viewProjectionMatrix [[ buffer(3) ]],
     uint               vid            [[ vertex_id ]]
 ) {
@@ -18,7 +17,7 @@ vertex ProjectionBakerOut projectionBakerVertexShader(
     float2 uv = outputUVs[vid];
     out.position = float4(uv * 2.0 - 1.0, 0.0, 1.0);
     float4 worldPos = float4(vertices[vid], 1.0);
-    float4 clipPos  = viewProjectionMatrix * worldToCameraMatrix * worldPos;
+    float4 clipPos  = viewProjectionMatrix * worldPos;
     out.projUV = clipPos.xy / clipPos.w * 0.5 + 0.5;
     return out;
 }

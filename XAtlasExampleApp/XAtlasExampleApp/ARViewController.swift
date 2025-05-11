@@ -72,7 +72,6 @@ struct MeshSnapshot {
     let faces: [[UInt32]]
     let timestamp: TimeInterval
     let image: UIImage
-    let worldToCameraMatrix: simd_float4x4
     let viewProjectionMatrix: simd_float4x4
     var uvs: [simd_float2]?
 }
@@ -199,7 +198,6 @@ class ARViewController: UIViewController {
                 vertices: mesh.vertices,
                 uvs: uvs,
                 indices: faces,
-                worldToCameraMatrix: mesh.worldToCameraMatrix,
                 viewProjMatrix: mesh.viewProjectionMatrix,
                 colorTexture: colorTexture,
                 outputTexture: outputTexture
@@ -295,7 +293,7 @@ extension ARViewController: ARSessionDelegate {
         }
         return UIImage()  // fallback
     }
-    func snapshot(from anchor: ARMeshAnchor, frame: ARFrame?) -> MeshSnapshot {
+    func snapshot(from anchor: ARMeshAnchor, frame: ARFrame) -> MeshSnapshot {
         let geometry = anchor.geometry
 
         let vertices = (0..<geometry.vertices.count).map {
@@ -308,28 +306,29 @@ extension ARViewController: ARSessionDelegate {
 
         let faces = geometry.faces()
 
-        let image =
-            frame.map { convertToUIImage(pixelBuffer: $0.capturedImage) }
-            ?? UIImage()
-
+        let image = convertToUIImage(pixelBuffer: frame.capturedImage)
+        let orientation = UIInterfaceOrientation.landscapeRight
+        let viewMatrix = frame.camera.viewMatrix(for: orientation)
+        let projectionMatrix = frame.camera.projectionMatrix(
+            for: orientation,
+            viewportSize: image.size,
+            zNear: 0.001,
+            zFar: 0
+        )
         return MeshSnapshot(
             id: anchor.identifier,
             transform: anchor.transform,
             vertices: vertices,
             normals: normals,
             faces: faces,
-            timestamp: frame?.timestamp ?? 0.0,
+            timestamp: frame.timestamp,
             image: image,
-            worldToCameraMatrix: frame?.camera.transform.inverse
-                ?? simd_float4x4(1.0),
-            viewProjectionMatrix: frame?.camera.viewMatrix(for: .landscapeLeft)
-                ?? simd_float4x4(1.0)
+            viewProjectionMatrix: projectionMatrix * viewMatrix
         )
     }
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
         for anchor in anchors {
-            if let meshAnchor = anchor as? ARMeshAnchor {
-                let frame = session.currentFrame
+            if let meshAnchor = anchor as? ARMeshAnchor ,let frame = session.currentFrame {
                 snapshots[meshAnchor.identifier] = snapshot(
                     from: meshAnchor,
                     frame: frame
@@ -340,8 +339,7 @@ extension ARViewController: ARSessionDelegate {
 
     func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
         for anchor in anchors {
-            if let meshAnchor = anchor as? ARMeshAnchor {
-                let frame = session.currentFrame
+            if let meshAnchor = anchor as? ARMeshAnchor ,let frame = session.currentFrame{
                 snapshots[meshAnchor.identifier] = snapshot(
                     from: meshAnchor,
                     frame: frame
