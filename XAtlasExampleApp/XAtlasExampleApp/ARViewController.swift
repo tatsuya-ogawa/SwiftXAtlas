@@ -78,6 +78,7 @@ struct MeshSnapshot {
 }
 class ARViewController: UIViewController {
     private(set) var snapshots: [UUID: MeshSnapshot] = [:]
+    private var baker = ProjectionTextureBaker()
     override func viewDidLoad() {
         let arView = ARView(frame: self.view.frame)
         func setARViewOptions() {
@@ -139,6 +140,7 @@ class ARViewController: UIViewController {
         self.view.addSubview(arView)
         initARView()
         initExportButton()
+        try! baker.setup()
     }
     func createARXAtlasArgument(meshes: [MeshSnapshot]) -> ARXAtlasArgument {
         var vertices: [SIMD3<Float>] = []
@@ -176,8 +178,7 @@ class ARViewController: UIViewController {
             totalUv += m.vertices.count
             return m
         }
-        var baker = ProjectionTextureBaker()
-        try baker.setup()
+       
         let outputTexture = baker.getOutputTexture(
             textureWidth: 4096,
             textureHeight: 4096

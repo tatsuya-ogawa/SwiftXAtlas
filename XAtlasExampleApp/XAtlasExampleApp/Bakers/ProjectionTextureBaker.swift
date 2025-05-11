@@ -29,14 +29,8 @@ public class ProjectionTextureBaker {
     public init() {
     }
     public func setup() throws {
-        guard
-            let shadersUrl = Bundle.module.url(
-                forResource: "projection_baker_shaders",
-                withExtension: "metallib"
-            )
-        else {
-            throw NSError(domain: "resource not found", code: 0)
-        }
+
+        let shadersUrl = try getShaderUrl(name: "projection_baker_shaders")
         let source = try String(contentsOf: shadersUrl)
 
         guard let device = MTLCreateSystemDefaultDevice() else {
@@ -44,12 +38,20 @@ public class ProjectionTextureBaker {
         }
         self.device = device
         let library = try device.makeLibrary(source: source, options: nil)
-        let vertexFunction = library.makeFunction(
-            name: "projectionVertexShader"
-        )
-        let fragmentFunction = library.makeFunction(
-            name: "projectionFragmentShader"
-        )
+        guard
+            let vertexFunction = library.makeFunction(
+                name: "projectionBakerVertexFunction"
+            )
+        else {
+            fatalError("vertexFunction not found")
+        }
+        guard
+            let fragmentFunction = library.makeFunction(
+                name: "projectionBakerFragmentFunction"
+            )
+        else {
+            fatalError("fragmentFunction not found")
+        }
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
         pipelineDescriptor.vertexFunction = vertexFunction
         pipelineDescriptor.fragmentFunction = fragmentFunction
@@ -171,7 +173,7 @@ public class ProjectionTextureBaker {
             options: []
         )!
         encoder.setVertexBuffer(mBuf, offset: 0, index: 2)
-        
+
         var vp = viewProjMatrix
         let vpBuf = device.makeBuffer(
             bytes: &vp,
@@ -179,7 +181,7 @@ public class ProjectionTextureBaker {
             options: []
         )!
         encoder.setVertexBuffer(vpBuf, offset: 0, index: 3)
-        
+
         // テクスチャ 0: 投影元カラー
         encoder.setFragmentTexture(colorTexture, index: 0)
 
