@@ -313,7 +313,7 @@ class ARViewController: UIViewController {
                 return simd_float3(newV.x, newV.y, newV.z)
             }
             let normalMatrix = simd_transpose(
-                simd_inverse(simd_float4x4(m.modelMatrix))
+                simd_inverse(m.modelMatrix)
             )
 
             m.normals = m.normals.map { n in
@@ -327,31 +327,19 @@ class ARViewController: UIViewController {
         let argument = createARXAtlasArgument(meshes: meshes)
         xatlas.generate([argument])
         let mesh = xatlas.mesh(at: 0)
-        //        mesh.applyUvs(mesh: argument)
-        //        argument.indices = mesh.mappedIndices().flatMap { [$0.x,$0.y,$0.z] }
+
         argument.vertices = mesh.mappings.enumerated().map { (index, map) in
             return argument.vertices[Int(map)]
         }
         argument.normals = mesh.mappings.enumerated().map { (index, map) in
             return argument.normals[Int(map)]
         }
+
         argument.indices = mesh.indices.flatMap { i in
             [i.x, i.y, i.z]
         }
-        argument.uvs = mesh.uvs
 
-        //        try self.exportAndShareOBJ(argument: argument)
-        //        return
-        var totalUv = 0
-        //        meshes = meshes.map { m in
-        //            var m = m
-        //            let uvs = Array(
-        //                argument.uvs[totalUv..<(totalUv + m.vertices.count)]
-        //            )
-        //            m.uvs = uvs
-        //            totalUv += m.vertices.count
-        //            return m
-        //        }
+        argument.uvs = mesh.uvs
 
         let outputTexture = baker.getOutputTexture(
             textureWidth: 4096,
@@ -384,7 +372,8 @@ class ARViewController: UIViewController {
             self.activityIndicator.stopAnimating()
 //            let image = UIImage(cgImage: image!)
 //            self.shareImageAsPNG(image, from: self)
-            try! self.exportAndShareUSDZ(argument: argument, atlasImage: image!)
+            try! self.exportAndShareOBJ(argument: argument,textureImage: image!)
+//            try! self.exportAndShareUSDZ(argument: argument, atlasImage: image!)
         }
     }
     func shareFile(_ fileURL: URL, from viewController: UIViewController) {
@@ -404,114 +393,68 @@ class ARViewController: UIViewController {
         }
         viewController.present(activityVC, animated: true, completion: nil)
     }
-    func exportAndShareUSDZ(
-        argument: ARXAtlasArgument,
-        atlasImage: CGImage,
-        filename: String = "ar.usda"
-    ) throws {
-        guard let device = MTLCreateSystemDefaultDevice() else {
-            fatalError("Metal device not available")
-        }
-
-        let mesh = try makeMDLMesh(
-            device: device,
-            positions: argument.vertices,
-            normals: argument.normals,
-            uvs: argument.uvs,
-            indices: argument.indices,
-            image: atlasImage
-        )
-        let allocator = MTKMeshBufferAllocator(device: device)
-        let asset = MDLAsset(bufferAllocator: allocator)
-        asset.add(mesh)
-        asset.loadTextures()
-
-        // 5) 一時ディレクトリに USDZ ファイルを書き出し
-        let tempDir = FileManager.default.temporaryDirectory
-        let usdzURL = tempDir.appendingPathComponent(filename)
-        let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: usdzURL.path) {
-            try fileManager.removeItem(at: usdzURL)
-        }
-        try asset.export(to: usdzURL)  // .usdz 拡張子なら自動で圧縮埋め込み
-
-        // 6) メインスレッドで共有シートを表示
-        DispatchQueue.main.async {
-            self.shareFile(usdzURL, from: self)
-        }
-    }
-    // MARK: — OBJ エクスポート＋共有
     func exportAndShareOBJ(
         argument: ARXAtlasArgument,
+        textureImage: CGImage,
         filename: String = "xatlas_uv.obj"
     ) throws {
-        let uvs = argument.uvs
-        let vertexCount = argument.vertices.count
+        let tempDir = FileManager.default.temporaryDirectory
 
+        let uiImage = UIImage(cgImage: textureImage)
+        guard let pngData = try uiImage.pngData() else {
+            fatalError("can not convert UIImage to PNG data")
+        }
+        let textureURL = tempDir.appendingPathComponent("texture.png")
+        try pngData.write(to: textureURL, options: .atomic)
+
+        let objURL = tempDir.appendingPathComponent(filename)
+        let mtlName = filename.replacingOccurrences(of: ".obj", with: ".mtl")
+        let mtlURL = tempDir.appendingPathComponent(mtlName)
+        let texName = textureURL.lastPathComponent
+
+        // 3) OBJ テキスト生成
         var objText = ""
-        for i in 0..<vertexCount {
-            let p = argument.vertices[i]
+        objText += "mtllib \(mtlName)\n"
+        objText += "o Model\n"
+        objText += "usemtl material0\n"
+        argument.vertices.forEach { p in
             objText += String(format: "v %f %f %f\n", p.x, p.y, p.z)
         }
-        for i in 0..<vertexCount {
-            let uv = uvs[i]
+        argument.uvs.forEach { uv in
             objText += String(format: "vt %f %f\n", uv.x, uv.y)
         }
-        for t in argument.indices.chunked(into: 3) {
-            let i0 = t[0] + 1
-            let i1 = t[1] + 1
-            let i2 = t[2] + 1
+        for tri in argument.indices.chunked(into: 3) {
+            let i0 = tri[0] + 1, i1 = tri[1] + 1, i2 = tri[2] + 1
             objText += "f \(i0)/\(i0) \(i1)/\(i1) \(i2)/\(i2)\n"
         }
+        try objText.write(to: objURL, atomically: true, encoding: .utf8)
 
-        let tempDir = FileManager.default.temporaryDirectory
-        let fileURL = tempDir.appendingPathComponent(filename)
-        try objText.write(to: fileURL, atomically: true, encoding: .utf8)
+        // 4) MTL テキスト生成
+        let mtlText = """
+        newmtl material0
+        Ka 1.000 1.000 1.000
+        Kd 1.000 1.000 1.000
+        Ks 0.000 0.000 0.000
+        map_Kd \(texName)
+        """
+        try mtlText.write(to: mtlURL, atomically: true, encoding: .utf8)
 
+        // 5) 共有シートで OBJ/MTL/PNG を渡す
         DispatchQueue.main.async {
-            self.shareFile(fileURL, from: self)
+            let items: [Any] = [objURL, mtlURL, textureURL]
+            let vc = UIActivityViewController(activityItems: items,
+                                              applicationActivities: nil)
+            if let pop = vc.popoverPresentationController {
+                pop.sourceView = self.view
+                pop.sourceRect = CGRect(x: self.view.bounds.midX,
+                                        y: self.view.bounds.midY,
+                                        width: 0, height: 0)
+                pop.permittedArrowDirections = []
+            }
+            self.present(vc, animated: true)
         }
     }
-    func shareImageAsPNG(
-        _ image: UIImage,
-        from viewController: UIViewController
-    ) {
-        // 1. UIImage を PNG データに変換
-        guard let pngData = image.pngData() else {
-            print("Error: PNG 変換に失敗しました")
-            return
-        }
 
-        // 2. 一時ディレクトリにファイルとして保存
-        let tempDirectory = FileManager.default.temporaryDirectory
-        let fileURL = tempDirectory.appendingPathComponent("shared_image.png")
-
-        do {
-            try pngData.write(to: fileURL, options: .atomic)
-        } catch {
-            print("Error: ファイル書き出しに失敗しました → \(error)")
-            return
-        }
-
-        // 3. UIActivityViewController を生成して表示
-        let activityVC = UIActivityViewController(
-            activityItems: [fileURL],
-            applicationActivities: nil
-        )
-        // iPad 対応（ポップオーバー表示先の指定）
-        if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = viewController.view
-            popover.sourceRect = CGRect(
-                x: viewController.view.bounds.midX,
-                y: viewController.view.bounds.midY,
-                width: 0,
-                height: 0
-            )
-            popover.permittedArrowDirections = []
-        }
-
-        viewController.present(activityVC, animated: true, completion: nil)
-    }
     @objc func generateMesh(_ sender: Any?) {
         DispatchQueue.main.async {
             self.activityIndicator.startAnimating()
