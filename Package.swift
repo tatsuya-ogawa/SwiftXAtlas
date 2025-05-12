@@ -37,7 +37,7 @@ let package = Package(
             dependencies: ["XAtlasObjc"],
             path: "SwiftXAtlas",
             resources: [
-                .process("Resources")
+//                .process("Resources")
             ]
         ),
         .testTarget(

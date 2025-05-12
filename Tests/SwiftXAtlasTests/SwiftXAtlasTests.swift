@@ -42,13 +42,7 @@ class ExampleArgument:SwiftXAtlasArgument{
 struct Point:BunnyPointProtocol,SwiftXAtlasUVProtocol{
     var pos: SIMD3<Float>
     var normal: SIMD3<Float>
-    var color: SIMD4<UInt8>
-    var uv: SIMD2<Float> = SIMD2<Float>.zero
-    init(pos: SIMD3<Float>, normal: SIMD3<Float>, color: SIMD4<UInt8>) {
-        self.pos = pos
-        self.normal = normal
-        self.color = color
-    }
+    var uv: SIMD2<Float>
 }
 
 final class SwiftXAtlasTests: XCTestCase {

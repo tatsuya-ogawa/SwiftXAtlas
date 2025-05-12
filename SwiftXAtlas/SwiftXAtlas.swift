@@ -15,6 +15,9 @@ public protocol SwiftXAtlasArgument :XAtlasArgument{
 public protocol SwiftXAtlasUVProtocol{
     var uv:simd_float2 { get set }
 }
+public protocol SwiftXAtlasBatchUVProtocol{
+    func setUv(index:UInt32,uv:simd_float2)
+}
 public class SwiftXAtlasMesh:XAtlasMesh{
     public var mappings:[UInt32] = []
     public var uvs:[simd_float2] = []
@@ -32,6 +35,21 @@ public class SwiftXAtlasMesh:XAtlasMesh{
             var point = points[Int(map)]
             point.uv = uvs[index]
             return point
+        }
+    }
+    public func applyUvs<T:SwiftXAtlasBatchUVProtocol>(mesh:T)->T{
+        mappings.enumerated().forEach{(index,map) in
+            mesh.setUv(index: map, uv: uvs[index])
+        }
+        return mesh
+    }
+    public func mappedIndices()->[simd_uint3]{
+        var mappingDict:[UInt32:UInt32] = [:]
+        mappings.enumerated().forEach{(index,map) in
+            mappingDict[UInt32(index)] = map
+        }
+        return indices.map{ i in
+            return simd_uint3(mappingDict[i.x]!,mappingDict[i.y]!,mappingDict[i.z]!)
         }
     }
 }
