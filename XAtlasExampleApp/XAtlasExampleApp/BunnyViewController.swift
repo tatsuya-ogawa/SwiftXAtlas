@@ -62,6 +62,18 @@ struct BunnyPoint:BunnyPointProtocol,SwiftXAtlasUVProtocol{
 }
 
 class BunnyViewController: UIViewController {
+    private let activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.hidesWhenStopped = true
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        return indicator
+    }()
+    private let label:UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     func boundingBox(positions:[SIMD3<Float>])->(min:SIMD3<Float>,max:SIMD3<Float>){
         var min:SIMD3<Float> = SIMD3<Float>.one * Float.greatestFiniteMagnitude
         var max:SIMD3<Float> = SIMD3<Float>.one * Float.leastNormalMagnitude
@@ -120,17 +132,39 @@ class BunnyViewController: UIViewController {
                 let imageView = UIImageView(image: UIImage(cgImage: image!))
                 imageView.frame = self.view.frame
                 self.view.addSubview(imageView)
+                
+                self.label.text = ""
+                self.activityIndicator.stopAnimating()
             }
         }
     }
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        
+        self.view.addSubview(label)
+        label.text = "Loading..."
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(
+                equalTo: view.centerXAnchor
+            ),
+            label.centerYAnchor.constraint(
+                equalTo: view.centerYAnchor
+            ),
+        ])
+        self.view.addSubview(activityIndicator)
+        NSLayoutConstraint.activate([
+            activityIndicator.centerXAnchor.constraint(
+                equalTo: view.centerXAnchor
+            ),
+            activityIndicator.centerYAnchor.constraint(
+                equalTo: view.centerYAnchor
+            ),
+        ])
     }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        draw()
+        self.activityIndicator.startAnimating()
+        self.draw()
     }
 }
 
