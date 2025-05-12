@@ -13,6 +13,7 @@
 //
 
 import ARKit
+import MetalKit
 import RealityKit
 import SwiftXAtlas
 import UIKit
@@ -200,6 +201,109 @@ class ARViewController: UIViewController {
             indices: indices
         )
     }
+    func makeMDLMesh(
+        device: MTLDevice,
+        positions: [SIMD3<Float>],
+        normals: [SIMD3<Float>],
+        uvs: [SIMD2<Float>],
+        indices: [UInt32],
+        image: CGImage
+    ) throws -> MDLMesh {
+        let uiImage = UIImage(cgImage: image)
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let fileURL = tempDirectory.appendingPathComponent("shared_image.png")
+        try uiImage.pngData()?.write(to: fileURL, options: .atomic)
+
+        let allocator = MTKMeshBufferAllocator(device: device)
+        let vertexCount = positions.count
+
+        // バッファ作成（先ほどと同じ）
+        let posData = Data(
+            bytes: positions,
+            count: MemoryLayout<SIMD3<Float>>.stride * vertexCount
+        )
+        let normalData = Data(
+            bytes: normals,
+            count: MemoryLayout<SIMD3<Float>>.stride * vertexCount
+        )
+        let uvData = Data(
+            bytes: uvs,
+            count: MemoryLayout<SIMD2<Float>>.stride * vertexCount
+        )
+
+        let posBuffer = allocator.newBuffer(with: posData, type: .vertex)
+        let normalBuffer = allocator.newBuffer(with: normalData, type: .vertex)
+        let uvBuffer = allocator.newBuffer(with: uvData, type: .vertex)
+
+        // VertexDescriptor
+        let vtxDesc = MDLVertexDescriptor()
+        vtxDesc.attributes[0] = MDLVertexAttribute(
+            name: MDLVertexAttributePosition,
+            format: .float3,
+            offset: 0,
+            bufferIndex: 0
+        )
+        vtxDesc.layouts[0] = MDLVertexBufferLayout(
+            stride: MemoryLayout<SIMD3<Float>>.stride
+        )
+        vtxDesc.attributes[1] = MDLVertexAttribute(
+            name: MDLVertexAttributeNormal,
+            format: .float3,
+            offset: 0,
+            bufferIndex: 1
+        )
+        vtxDesc.layouts[1] = MDLVertexBufferLayout(
+            stride: MemoryLayout<SIMD3<Float>>.stride
+        )
+        vtxDesc.attributes[2] = MDLVertexAttribute(
+            name: MDLVertexAttributeTextureCoordinate,
+            format: .float2,
+            offset: 0,
+            bufferIndex: 2
+        )
+        vtxDesc.layouts[2] = MDLVertexBufferLayout(
+            stride: MemoryLayout<SIMD2<Float>>.stride
+        )
+
+        // インデックスバッファ
+        let idxData = Data(
+            bytes: indices,
+            count: MemoryLayout<UInt32>.stride * indices.count
+        )
+        let idxBuffer = allocator.newBuffer(with: idxData, type: .index)
+
+        let submesh = MDLSubmesh(
+            indexBuffer: idxBuffer,
+            indexCount: indices.count,
+            indexType: .uInt32,
+            geometryType: .triangles,
+            material: nil
+        )
+
+        // MDLMesh 本体を組み立て
+        let mesh = MDLMesh(
+            vertexBuffers: [posBuffer, normalBuffer, uvBuffer],
+            vertexCount: vertexCount,
+            descriptor: vtxDesc,
+            submeshes: [submesh]
+        )
+        let textureProperty = MDLMaterialProperty(
+            name: "baseColor",
+            semantic: .baseColor,
+            url: fileURL
+        )
+        let material = MDLMaterial(
+            name: "material",
+            scatteringFunction: MDLScatteringFunction()
+        )
+        material.setProperty(textureProperty)
+
+        // 7) マテリアルをサブメッシュにセット
+        if let mdlSubmesh = mesh.submeshes?.first as? MDLSubmesh {
+            mdlSubmesh.material = material
+        }
+        return mesh
+    }
     func bakeTexture(meshes: [MeshSnapshot]) throws {
         let xatlas = SwiftXAtlas()
         let meshes = meshes.map { m in
@@ -213,7 +317,9 @@ class ARViewController: UIViewController {
             )
 
             m.normals = m.normals.map { n in
-                let n = normalize(normalMatrix * simd_float4(n.x, n.y, n.z, 1.0))
+                let n = normalize(
+                    normalMatrix * simd_float4(n.x, n.y, n.z, 1.0)
+                )
                 return simd_float3(n.x, n.y, n.z)
             }
             return m
@@ -221,31 +327,31 @@ class ARViewController: UIViewController {
         let argument = createARXAtlasArgument(meshes: meshes)
         xatlas.generate([argument])
         let mesh = xatlas.mesh(at: 0)
-//        mesh.applyUvs(mesh: argument)
-//        argument.indices = mesh.mappedIndices().flatMap { [$0.x,$0.y,$0.z] }
-        argument.vertices = mesh.mappings.enumerated().map{(index,map) in
+        //        mesh.applyUvs(mesh: argument)
+        //        argument.indices = mesh.mappedIndices().flatMap { [$0.x,$0.y,$0.z] }
+        argument.vertices = mesh.mappings.enumerated().map { (index, map) in
             return argument.vertices[Int(map)]
         }
-        argument.normals = mesh.mappings.enumerated().map{(index,map) in
+        argument.normals = mesh.mappings.enumerated().map { (index, map) in
             return argument.normals[Int(map)]
         }
-        argument.indices = mesh.indices.flatMap{ i in
-            [i.x,i.y,i.z]
+        argument.indices = mesh.indices.flatMap { i in
+            [i.x, i.y, i.z]
         }
         argument.uvs = mesh.uvs
 
-//        try self.exportAndShareOBJ(argument: argument)
-//        return
+        //        try self.exportAndShareOBJ(argument: argument)
+        //        return
         var totalUv = 0
-//        meshes = meshes.map { m in
-//            var m = m
-//            let uvs = Array(
-//                argument.uvs[totalUv..<(totalUv + m.vertices.count)]
-//            )
-//            m.uvs = uvs
-//            totalUv += m.vertices.count
-//            return m
-//        }
+        //        meshes = meshes.map { m in
+        //            var m = m
+        //            let uvs = Array(
+        //                argument.uvs[totalUv..<(totalUv + m.vertices.count)]
+        //            )
+        //            m.uvs = uvs
+        //            totalUv += m.vertices.count
+        //            return m
+        //        }
 
         let outputTexture = baker.getOutputTexture(
             textureWidth: 4096,
@@ -259,10 +365,10 @@ class ARViewController: UIViewController {
             guard let colorTexture else {
                 fatalError("colorTexture is nil")
             }
-//            guard let uvs = mesh.uvs else {
-//                fatalError("uvs is nil")
-//            }
-//            let faces = mesh.faces.flatMap { $0 }
+            //            guard let uvs = mesh.uvs else {
+            //                fatalError("uvs is nil")
+            //            }
+            //            let faces = mesh.faces.flatMap { $0 }
 
             let _ = baker.draw(
                 vertices: argument.vertices,
@@ -276,8 +382,9 @@ class ARViewController: UIViewController {
         let image = baker.image(from: outputTexture)
         DispatchQueue.main.async {
             self.activityIndicator.stopAnimating()
-            let image = UIImage(cgImage: image!)
-            self.shareImageAsPNG(image, from: self)
+//            let image = UIImage(cgImage: image!)
+//            self.shareImageAsPNG(image, from: self)
+            try! self.exportAndShareUSDZ(argument: argument, atlasImage: image!)
         }
     }
     func shareFile(_ fileURL: URL, from viewController: UIViewController) {
@@ -297,7 +404,42 @@ class ARViewController: UIViewController {
         }
         viewController.present(activityVC, animated: true, completion: nil)
     }
+    func exportAndShareUSDZ(
+        argument: ARXAtlasArgument,
+        atlasImage: CGImage,
+        filename: String = "ar.usda"
+    ) throws {
+        guard let device = MTLCreateSystemDefaultDevice() else {
+            fatalError("Metal device not available")
+        }
 
+        let mesh = try makeMDLMesh(
+            device: device,
+            positions: argument.vertices,
+            normals: argument.normals,
+            uvs: argument.uvs,
+            indices: argument.indices,
+            image: atlasImage
+        )
+        let allocator = MTKMeshBufferAllocator(device: device)
+        let asset = MDLAsset(bufferAllocator: allocator)
+        asset.add(mesh)
+        asset.loadTextures()
+
+        // 5) 一時ディレクトリに USDZ ファイルを書き出し
+        let tempDir = FileManager.default.temporaryDirectory
+        let usdzURL = tempDir.appendingPathComponent(filename)
+        let fileManager = FileManager.default
+        if fileManager.fileExists(atPath: usdzURL.path) {
+            try fileManager.removeItem(at: usdzURL)
+        }
+        try asset.export(to: usdzURL)  // .usdz 拡張子なら自動で圧縮埋め込み
+
+        // 6) メインスレッドで共有シートを表示
+        DispatchQueue.main.async {
+            self.shareFile(usdzURL, from: self)
+        }
+    }
     // MARK: — OBJ エクスポート＋共有
     func exportAndShareOBJ(
         argument: ARXAtlasArgument,
