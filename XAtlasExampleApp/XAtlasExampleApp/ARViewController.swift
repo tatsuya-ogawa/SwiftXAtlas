@@ -92,10 +92,13 @@ struct MeshSnapshot {
     var normals: [simd_float3]
     let faces: [[UInt32]]
     let timestamp: TimeInterval
-    let image: UIImage
     let modelMatrix: simd_float4x4
-    let viewProjectionMatrix: simd_float4x4
     var uvs: [simd_float2]?
+}
+struct CapturedSnapshot {
+    let timestamp: TimeInterval
+    let image: UIImage
+    let viewProjectionMatrix: simd_float4x4
 }
 class ARViewController: UIViewController {
     private let activityIndicator: UIActivityIndicatorView = {
@@ -105,28 +108,37 @@ class ARViewController: UIViewController {
         return indicator
     }()
     private(set) var snapshots: [UUID: MeshSnapshot] = [:]
+    private(set) var capturedImageSnapshots:[CapturedSnapshot] = []
     private var baker = ProjectionTextureBaker()
+    func buildConfigure() -> ARWorldTrackingConfiguration {
+        let configuration = ARWorldTrackingConfiguration()
+
+        configuration.environmentTexturing = .automatic
+        configuration.sceneReconstruction = .mesh
+        if type(of: configuration).supportsFrameSemantics(.sceneDepth) {
+            configuration.frameSemantics = .sceneDepth
+        }
+
+        return configuration
+    }
+    var arView : ARView?
+    func pauseSession() {
+        arView?.session.pause()
+    }
+    func restartSession() {
+        arView?.session.run(buildConfigure())
+    }
     override func viewDidLoad() {
-        let arView = ARView(frame: self.view.frame)
+        arView = ARView(frame: self.view.frame)
         func setARViewOptions() {
-            arView.debugOptions.insert(.showSceneUnderstanding)
+            arView?.debugOptions.insert(.showSceneUnderstanding)
         }
-        func buildConfigure() -> ARWorldTrackingConfiguration {
-            let configuration = ARWorldTrackingConfiguration()
-
-            configuration.environmentTexturing = .automatic
-            configuration.sceneReconstruction = .mesh
-            if type(of: configuration).supportsFrameSemantics(.sceneDepth) {
-                configuration.frameSemantics = .sceneDepth
-            }
-
-            return configuration
-        }
+        
         func initARView() {
 
             setARViewOptions()
             let configuration = buildConfigure()
-            arView.session.run(configuration)
+            arView?.session.run(configuration)
         }
         func initExportButton() {
             let exportButton = UIButton(type: .system)
@@ -162,9 +174,9 @@ class ARViewController: UIViewController {
                 ),
             ])
         }
-        arView.session.delegate = self
+        arView?.session.delegate = self
         super.viewDidLoad()
-        self.view.addSubview(arView)
+        self.view.addSubview(arView!)
         initARView()
         initExportButton()
         try! baker.setup()
@@ -245,8 +257,8 @@ class ARViewController: UIViewController {
         guard let outputTexture else {
             fatalError("outputTexture is nil")
         }
-        for mesh in meshes {
-            let colorTexture = try baker.makeTexture(from: mesh.image)
+        for capture in capturedImageSnapshots {
+            let colorTexture = try baker.makeTexture(from: capture.image)
             guard let colorTexture else {
                 fatalError("colorTexture is nil")
             }
@@ -259,7 +271,7 @@ class ARViewController: UIViewController {
                 vertices: argument.vertices,
                 uvs: argument.uvs,
                 indices: argument.indices,
-                viewProjMatrix: mesh.viewProjectionMatrix,
+                viewProjMatrix: capture.viewProjectionMatrix,
                 colorTexture: colorTexture,
                 outputTexture: outputTexture
             )
@@ -267,6 +279,7 @@ class ARViewController: UIViewController {
         let image = baker.image(from: outputTexture)
         DispatchQueue.main.async {
             self.activityIndicator.stopAnimating()
+            self.restartSession()
 //            let image = UIImage(cgImage: image!)
 //            self.shareImageAsPNG(image, from: self)
             try! self.exportAndShareOBJ(argument: argument,textureImage: image!)
@@ -354,6 +367,7 @@ class ARViewController: UIViewController {
 
     @objc func generateMesh(_ sender: Any?) {
         DispatchQueue.main.async {
+            self.pauseSession()
             self.activityIndicator.startAnimating()
         }
         var meshes = self.snapshots.map { (k, v) in
@@ -365,6 +379,7 @@ class ARViewController: UIViewController {
             } catch {
                 DispatchQueue.main.async {
                     self.activityIndicator.stopAnimating()
+                    self.restartSession()
                 }
             }
         }
@@ -446,6 +461,29 @@ extension ARViewController: ARSessionDelegate {
         }
         return UIImage()  // fallback
     }
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        if snapshots.count == 0 {
+            return
+        }
+        if let timestamp = self.capturedImageSnapshots.last?.timestamp{
+            if frame.timestamp - timestamp < 0.5{
+                return
+            }
+        }
+        
+        let image = convertToUIImage(pixelBuffer: frame.capturedImage)
+        let orientation = UIInterfaceOrientation.landscapeRight
+        let viewMatrix = frame.camera.viewMatrix(for: orientation)
+        let projectionMatrix = frame.camera.projectionMatrix(
+            for: orientation,
+            viewportSize: CGSize(width: image.size.width, height: image.size.height),
+            zNear: 0.001,
+            zFar: 0,
+        )
+        self.capturedImageSnapshots.append(
+            CapturedSnapshot(timestamp: frame.timestamp, image: image, viewProjectionMatrix: projectionMatrix*viewMatrix)
+        )
+    }
     func snapshot(from anchor: ARMeshAnchor, frame: ARFrame) -> MeshSnapshot {
         let geometry = anchor.geometry
 
@@ -458,16 +496,6 @@ extension ARViewController: ARSessionDelegate {
         }
 
         let faces = geometry.faces()
-
-        let image = convertToUIImage(pixelBuffer: frame.capturedImage)
-        let orientation = UIInterfaceOrientation.landscapeRight
-        let viewMatrix = frame.camera.viewMatrix(for: orientation)
-        let projectionMatrix = frame.camera.projectionMatrix(
-            for: orientation,
-            viewportSize: CGSize(width: image.size.width, height: image.size.height),
-            zNear: 0.001,
-            zFar: 0,
-        )
         return MeshSnapshot(
             id: anchor.identifier,
             transform: anchor.transform,
@@ -475,9 +503,7 @@ extension ARViewController: ARSessionDelegate {
             normals: normals,
             faces: faces,
             timestamp: frame.timestamp,
-            image: image,
             modelMatrix: anchor.transform,
-            viewProjectionMatrix: projectionMatrix * viewMatrix
         )
     }
     func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
