@@ -201,115 +201,12 @@ class ARViewController: UIViewController {
             indices: indices
         )
     }
-    func makeMDLMesh(
-        device: MTLDevice,
-        positions: [SIMD3<Float>],
-        normals: [SIMD3<Float>],
-        uvs: [SIMD2<Float>],
-        indices: [UInt32],
-        image: CGImage
-    ) throws -> MDLMesh {
-        let uiImage = UIImage(cgImage: image)
-        let tempDirectory = FileManager.default.temporaryDirectory
-        let fileURL = tempDirectory.appendingPathComponent("shared_image.png")
-        try uiImage.pngData()?.write(to: fileURL, options: .atomic)
-
-        let allocator = MTKMeshBufferAllocator(device: device)
-        let vertexCount = positions.count
-
-        // バッファ作成（先ほどと同じ）
-        let posData = Data(
-            bytes: positions,
-            count: MemoryLayout<SIMD3<Float>>.stride * vertexCount
-        )
-        let normalData = Data(
-            bytes: normals,
-            count: MemoryLayout<SIMD3<Float>>.stride * vertexCount
-        )
-        let uvData = Data(
-            bytes: uvs,
-            count: MemoryLayout<SIMD2<Float>>.stride * vertexCount
-        )
-
-        let posBuffer = allocator.newBuffer(with: posData, type: .vertex)
-        let normalBuffer = allocator.newBuffer(with: normalData, type: .vertex)
-        let uvBuffer = allocator.newBuffer(with: uvData, type: .vertex)
-
-        // VertexDescriptor
-        let vtxDesc = MDLVertexDescriptor()
-        vtxDesc.attributes[0] = MDLVertexAttribute(
-            name: MDLVertexAttributePosition,
-            format: .float3,
-            offset: 0,
-            bufferIndex: 0
-        )
-        vtxDesc.layouts[0] = MDLVertexBufferLayout(
-            stride: MemoryLayout<SIMD3<Float>>.stride
-        )
-        vtxDesc.attributes[1] = MDLVertexAttribute(
-            name: MDLVertexAttributeNormal,
-            format: .float3,
-            offset: 0,
-            bufferIndex: 1
-        )
-        vtxDesc.layouts[1] = MDLVertexBufferLayout(
-            stride: MemoryLayout<SIMD3<Float>>.stride
-        )
-        vtxDesc.attributes[2] = MDLVertexAttribute(
-            name: MDLVertexAttributeTextureCoordinate,
-            format: .float2,
-            offset: 0,
-            bufferIndex: 2
-        )
-        vtxDesc.layouts[2] = MDLVertexBufferLayout(
-            stride: MemoryLayout<SIMD2<Float>>.stride
-        )
-
-        // インデックスバッファ
-        let idxData = Data(
-            bytes: indices,
-            count: MemoryLayout<UInt32>.stride * indices.count
-        )
-        let idxBuffer = allocator.newBuffer(with: idxData, type: .index)
-
-        let submesh = MDLSubmesh(
-            indexBuffer: idxBuffer,
-            indexCount: indices.count,
-            indexType: .uInt32,
-            geometryType: .triangles,
-            material: nil
-        )
-
-        // MDLMesh 本体を組み立て
-        let mesh = MDLMesh(
-            vertexBuffers: [posBuffer, normalBuffer, uvBuffer],
-            vertexCount: vertexCount,
-            descriptor: vtxDesc,
-            submeshes: [submesh]
-        )
-        let textureProperty = MDLMaterialProperty(
-            name: "baseColor",
-            semantic: .baseColor,
-            url: fileURL
-        )
-        let material = MDLMaterial(
-            name: "material",
-            scatteringFunction: MDLScatteringFunction()
-        )
-        material.setProperty(textureProperty)
-
-        // 7) マテリアルをサブメッシュにセット
-        if let mdlSubmesh = mesh.submeshes?.first as? MDLSubmesh {
-            mdlSubmesh.material = material
-        }
-        return mesh
-    }
     func bakeTexture(meshes: [MeshSnapshot]) throws {
         let xatlas = SwiftXAtlas()
         let meshes = meshes.map { m in
             var m = m
             m.vertices = m.vertices.map { v in
-                let newV = m.modelMatrix * simd_float4(v.x, v.y, v.z, 1.0)
+                let newV = simd_mul(m.modelMatrix , simd_float4(v.x, v.y, v.z, 1.0))
                 return simd_float3(newV.x, newV.y, newV.z)
             }
             let normalMatrix = simd_transpose(
@@ -318,7 +215,7 @@ class ARViewController: UIViewController {
 
             m.normals = m.normals.map { n in
                 let n = normalize(
-                    normalMatrix * simd_float4(n.x, n.y, n.z, 1.0)
+                    simd_mul(normalMatrix , simd_float4(n.x, n.y, n.z, 1.0))
                 )
                 return simd_float3(n.x, n.y, n.z)
             }
@@ -567,9 +464,9 @@ extension ARViewController: ARSessionDelegate {
         let viewMatrix = frame.camera.viewMatrix(for: orientation)
         let projectionMatrix = frame.camera.projectionMatrix(
             for: orientation,
-            viewportSize: image.size,
+            viewportSize: CGSize(width: image.size.width, height: image.size.height),
             zNear: 0.001,
-            zFar: 0
+            zFar: 0,
         )
         return MeshSnapshot(
             id: anchor.identifier,
