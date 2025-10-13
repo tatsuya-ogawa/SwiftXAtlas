@@ -71,7 +71,7 @@ class ARXAtlasArgument: SwiftXAtlasArgument, SwiftXAtlasBatchUVProtocol {
     }
 }
 extension Array {
-    /// 配列を size 個ずつに分割して二次元配列にする
+    /// Split the array into chunks of specified size and return a 2D array
     func chunked(into size: Int) -> [[Element]] {
         guard size > 0 else { return [] }
         var chunks: [[Element]] = []
@@ -322,7 +322,7 @@ class ARViewController: UIViewController {
         let mtlURL = tempDir.appendingPathComponent(mtlName)
         let texName = textureURL.lastPathComponent
 
-        // 3) OBJ テキスト生成
+        // 3) Generate OBJ text
         var objText = ""
         objText += "mtllib \(mtlName)\n"
         objText += "o Model\n"
@@ -339,7 +339,7 @@ class ARViewController: UIViewController {
         }
         try objText.write(to: objURL, atomically: true, encoding: .utf8)
 
-        // 4) MTL テキスト生成
+        // 4) Generate MTL text
         let mtlText = """
         newmtl material0
         Ka 1.000 1.000 1.000
@@ -349,7 +349,7 @@ class ARViewController: UIViewController {
         """
         try mtlText.write(to: mtlURL, atomically: true, encoding: .utf8)
 
-        // 5) 共有シートで OBJ/MTL/PNG を渡す
+        // 5) Share OBJ/MTL/PNG files via activity sheet
         DispatchQueue.main.async {
             let items: [Any] = [objURL, mtlURL, textureURL]
             let vc = UIActivityViewController(activityItems: items,

@@ -129,7 +129,7 @@ public class ProjectionTextureBaker {
                 descriptor: {
                     let rpd = MTLRenderPassDescriptor()
                     rpd.colorAttachments[0].texture = outputTexture
-                    // 既存内容を読み込む
+                    // Load existing content
                     rpd.colorAttachments[0].loadAction = .load
                     rpd.colorAttachments[0].storeAction = .store
                     return rpd
@@ -137,7 +137,7 @@ public class ProjectionTextureBaker {
             )
         else { return nil }
 
-        // ビューポート
+        // Viewport
         encoder.setViewport(
             MTLViewport(
                 originX: 0,
@@ -150,7 +150,7 @@ public class ProjectionTextureBaker {
         )
         encoder.setRenderPipelineState(pipelineState)
 
-        // バッファ 0: 頂点位置
+        // Buffer 0: Vertex positions
         let vBuf = device.makeBuffer(
             bytes: vertices,
             length: MemoryLayout<SIMD3<Float>>.stride * vertices.count,
@@ -173,10 +173,10 @@ public class ProjectionTextureBaker {
         )!
         encoder.setVertexBuffer(vpBuf, offset: 0, index: 2)
 
-        // テクスチャ 0: 投影元カラー
+        // Texture 0: Source color for projection
         encoder.setFragmentTexture(colorTexture, index: 0)
 
-        // インデックス描画
+        // Indexed drawing
         let iBuf = device.makeBuffer(
             bytes: indices,
             length: MemoryLayout<UInt32>.size * indices.count,
